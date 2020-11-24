@@ -1,0 +1,21 @@
+﻿<Window x:Class="IP_Checker.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:IP_Checker"
+        mc:Ignorable="d"
+        Title="IP Checka" Height="352.5" Width="658.5">
+    <Grid>
+        <Button Content="Check IP" HorizontalAlignment="Left" Margin="10,78,0,0" VerticalAlignment="Top" Width="58" Height="26" Click="CheckIP_Click"/>
+        <TextBlock x:Name="IP_FieldHeader" HorizontalAlignment="Left" Margin="10,26,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Height="24" Width="21" FontSize="18" TextDecorations="Underline"><Run Text="IP" TextDecorations="Underline"/><Run Text=":"/></TextBlock>
+        <TextBlock x:Name="IP_Value" HorizontalAlignment="Left" Height="47" Margin="33,26,0,0" TextWrapping="Wrap" Text="TextBlock" VerticalAlignment="Top" Width="607" FontSize="18"/>
+        <TextBlock HorizontalAlignment="Left" Margin="10,122,0,0" TextWrapping="Wrap" Text="Website:" VerticalAlignment="Top" Height="24" Width="48" RenderTransformOrigin="0.51,2.042"/>
+        <Button Content="Add It" HorizontalAlignment="Left" Height="24" Margin="10,161,0,0" VerticalAlignment="Top" Width="40" Click="Add_Click"/>
+        <Button Content="Remove It" HorizontalAlignment="Left" Height="24" Margin="83,161,0,0" VerticalAlignment="Top" Width="65" Click="Remove_Click"/>
+        <TextBox x:Name="Website_Field" HorizontalAlignment="Left" Margin="58,122,0,0" TextWrapping="Wrap" Text="Type here..." VerticalAlignment="Top" Height="24" Width="172" TextDecorations="{x:Null}"/>
+        <TextBlock x:Name="CurrentWebsites_Field" HorizontalAlignment="Left" Height="159" Margin="235,146,0,0" TextWrapping="Wrap" Text="TextBlock" VerticalAlignment="Top" Width="261"/>
+        <TextBlock HorizontalAlignment="Left" Margin="235,122,0,0" TextWrapping="Wrap" Text="Current websites:" VerticalAlignment="Top" Height="24" Width="251"/>
+
+    </Grid>
+</Window>
