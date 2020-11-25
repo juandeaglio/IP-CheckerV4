@@ -23,6 +23,8 @@ namespace IP_Checker
         static IPMonitor()
         {
             websites = new WebsiteHashSet();
+            RegisterWithWebsiteChanges(websites.Add);
+            RegisterWithWebsiteChanges(websites.Remove);
         }
 
         public static void Run()
@@ -149,14 +151,25 @@ namespace IP_Checker
         //Delegates are simple and defined by MainWindow.
         public static Action<string> UpdateIPAction;
         public static Action<HashSet<string>> UpdateWebsitesAction;
+        public delegate void WebsiteChangeHandler(string websiteFieldText);
+        private static WebsiteChangeHandler listOfHandlers;
+        public static void RegisterWithWebsiteChanges(WebsiteChangeHandler methodToCall)
+        {
+            lock (websites)
+            {
+                if (listOfHandlers == null)
+                    listOfHandlers = methodToCall;
+                else
+                    listOfHandlers = Delegate.Combine(listOfHandlers, methodToCall) as WebsiteChangeHandler;
+            }
+        }
         public static void AddWebsite(string websiteFieldText)
         {
             try
             {
                 using (var client = new MyWebClient())
                     client.OpenRead(websiteFieldText);
-                lock (websites) { websites.Add(websiteFieldText); }
-
+                websites.Add(websiteFieldText); 
             }
             catch (WebException ex)
             {
@@ -164,6 +177,9 @@ namespace IP_Checker
             }
             //Display add success notification.
         }
-        public static void RemoveWebsite(string websiteFieldText) { lock (websites) { websites.Remove(websiteFieldText); } }
+        public static void RemoveWebsite(string websiteFieldText) 
+        {
+            websites.Remove(websiteFieldText); 
+        }
     }
  }

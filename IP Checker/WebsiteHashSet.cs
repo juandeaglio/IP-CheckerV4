@@ -14,11 +14,10 @@ namespace IP_Checker
         public new void Add(string websiteFieldText)
         {
             if (!base.Contains(websiteFieldText))
-                if (base.Contains(websiteFieldText))
-                {
-                    base.Add(websiteFieldText);
-                    IPMonitor.UpdateWebsitesAction(this);
-                }
+            { 
+                base.Add(websiteFieldText);
+                IPMonitor.UpdateWebsitesAction(this);
+            }
         }
         public new void Remove(string websiteFieldText)
         {
