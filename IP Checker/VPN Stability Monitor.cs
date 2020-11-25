@@ -31,6 +31,10 @@ namespace IP_Checker
         {
             if(!IPMonitor.currentIP.Equals(HomeIP) && IsValidIP(IPMonitor.currentIP))
             {
+                ShutdownThresholdCounter = 0;
+            }
+            else if(IPMonitor.currentIP.Equals(HomeIP))
+            {
 
             }
         }

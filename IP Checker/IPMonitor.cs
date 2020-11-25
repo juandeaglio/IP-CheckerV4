@@ -14,7 +14,7 @@ namespace IP_Checker
     public static class IPMonitor
     {
         public static string Title { get; set; } = "IP Checka";
-        public static HashSet<string> websites;
+        public static WebsiteHashSet websites;
         public static string currentIP;
         private static string CurrentWebsite { get; set; } = "";
         private static CancellationTokenSource cancelToken = new CancellationTokenSource();
@@ -22,16 +22,12 @@ namespace IP_Checker
         //private static TimerCallback timerCB;
         static IPMonitor()
         {
-            websites = new HashSet<string>();
+            websites = new WebsiteHashSet();
         }
 
         public static void Run()
         {
             Task.Factory.StartNew(CheckIP);
-            while (true)
-            {
-                Thread.Sleep(50);
-            }
         }
         public static void CheckIP()
         {
@@ -49,13 +45,13 @@ namespace IP_Checker
                     {
                         MyWebClient wc = new MyWebClient();
                         wc.DownloadStringCompleted += new DownloadStringCompletedEventHandler(wc_DownloadStringCompleted);
-                        //TODO: Multiple IP checks.
                         wc.DownloadStringAsync(new Uri(CurrentWebsite));
                         //Download IP, sort out useless info with regex.
                         void wc_DownloadStringCompleted(object sender, DownloadStringCompletedEventArgs e)
                         {
                             try
                             {
+                                //When string is downloaded use a regex pattern to get IP: (digits [dot] digits [dot] digits [dot] digits)
                                 string regexPattern = @"\d*\.\d*\.\d*\.\d*";
                                 Regex rgx = new Regex(regexPattern);
                                 currentIP = rgx.Match(e.Result).Value + " using " + CurrentWebsite;
@@ -63,7 +59,7 @@ namespace IP_Checker
                             }
                             catch
                             {
-                                //TODO: Some sort of logging of exception
+                                //TODO: Some sort of logging of exception for a download failed.
                             }
                         }
                     }
@@ -78,12 +74,6 @@ namespace IP_Checker
             }
         }
 
-        public static bool IsConnectionActive()
-        {
-            bool connected = false;
-            connected = ReadFromWebsites();
-            return connected;
-        }
         private static void ResetTitle(object state)
         {
 
@@ -100,7 +90,7 @@ namespace IP_Checker
                 Title = "Null";
             }
         }
-        public static bool ReadFromWebsites()
+        public static bool IsConnectionActive()
         {
             //CurrentWebsite = "";
             string websiteStr = "";
@@ -128,17 +118,17 @@ namespace IP_Checker
                     }
                     catch (OperationCanceledException ex)
                     {
-                    //TODO: Logging which one is slower. GUI Feedback of stats on website speeds.
+                        //TODO: Logging which one is slower. GUI Feedback of stats on website speeds.
                     }
                     catch (WebException ex)
                     {
-                    //TODO: Logging if a particular link timedOut (needs replacement or checking) GUI feedback if this occurs.
+                        //TODO: Logging if a particular link timedOut (needs replacement or checking) GUI feedback if this occurs.
                         timedOut = true;
                         websiteStr = website + " has timed out.";
                     }
                     finally
                     {
-                    //May remove this clause
+                        //May remove this clause
                     }
                 }
                 );
@@ -161,37 +151,19 @@ namespace IP_Checker
         public static Action<HashSet<string>> UpdateWebsitesAction;
         public static void AddWebsite(string websiteFieldText)
         {
-
-            if (!websites.Contains(websiteFieldText))
+            try
             {
-                try
-                {
-                    using (var client = new MyWebClient())
-                        client.OpenRead(websiteFieldText);
-                    lock (websites)
-                    {
-                        websites.Add(websiteFieldText);
-                    }
-                    UpdateWebsitesAction(websites);
-                }
-                catch (WebException ex)
-                {
-                    //TODO: Logging incorrect website added or unreachable website. GUI feedback if incorrect.
-                }         
+                using (var client = new MyWebClient())
+                    client.OpenRead(websiteFieldText);
+                lock (websites) { websites.Add(websiteFieldText); }
+
+            }
+            catch (WebException ex)
+            {
+                //TODO: Logging incorrect website added or unreachable website. GUI feedback if incorrect.
             }
             //Display add success notification.
         }
-        public static void RemoveWebsite(string websiteFieldText)
-        {
-            if (websites.Contains(websiteFieldText))
-            {
-                // Your code...
-                lock (websites)
-                {
-                    websites.Remove(websiteFieldText);
-                }
-            }
-            UpdateWebsitesAction(websites);
-        }
+        public static void RemoveWebsite(string websiteFieldText) { lock (websites) { websites.Remove(websiteFieldText); } }
     }
-}
+ }
