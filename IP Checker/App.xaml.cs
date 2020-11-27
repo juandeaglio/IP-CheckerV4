@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Configuration;
 using System.Data;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 using System.Windows;
 
@@ -15,7 +16,6 @@ namespace IP_Checker
     {
         App()
         {
-            //TODO: Implement IP/VPN logic.
         }
     }
 }

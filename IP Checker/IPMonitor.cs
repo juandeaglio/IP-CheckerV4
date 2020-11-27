@@ -16,6 +16,8 @@ namespace IP_Checker
         public static string Title { get; set; } = "IP Checka";
         public static WebsiteHashSet websites;
         public static string currentIP;
+        public static string currentIPField;
+        public static bool stop = false;
         private static string CurrentWebsite { get; set; } = "";
         private static CancellationTokenSource cancelToken = new CancellationTokenSource();
         //TODO: Future plans of timer
@@ -23,8 +25,6 @@ namespace IP_Checker
         static IPMonitor()
         {
             websites = new WebsiteHashSet();
-            RegisterWithWebsiteChanges(websites.Add);
-            RegisterWithWebsiteChanges(websites.Remove);
         }
 
         public static void Run()
@@ -37,8 +37,7 @@ namespace IP_Checker
             {
                 static void UpdateIP(string currentStatus)
                 {
-                    currentIP = currentStatus;
-                    UpdateIPAction(currentIP);
+                    UpdateIPAction(currentStatus);
                     Thread.Sleep(50);
                 }
                 if (websites.Count > 0)
@@ -56,8 +55,12 @@ namespace IP_Checker
                                 //When string is downloaded use a regex pattern to get IP: (digits [dot] digits [dot] digits [dot] digits)
                                 string regexPattern = @"\d*\.\d*\.\d*\.\d*";
                                 Regex rgx = new Regex(regexPattern);
-                                currentIP = rgx.Match(e.Result).Value + " using " + CurrentWebsite;
-                                UpdateIP(currentIP);
+                                if(!stop)
+                                currentIP = rgx.Match(e.Result).Value;
+                                else
+                                    currentIP = "126.44.36.226";
+                                currentIPField = currentIP + " using " + CurrentWebsite;
+                                UpdateIP(currentIPField);
                             }
                             catch
                             {
@@ -67,10 +70,14 @@ namespace IP_Checker
                     }
                     //TODO: Check for internet outage on delegate counter. Shuts down after a certain limit. Logs shutdown.
                     else
+                    {
+                        currentIP = "";
                         UpdateIP("No Internet: " + CurrentWebsite);
+                    }
                 }
                 else
                 {
+                    currentIP = "";
                     UpdateIP("No websites, unable to determine.");
                 }
             }
@@ -94,7 +101,8 @@ namespace IP_Checker
         }
         public static bool IsConnectionActive()
         {
-            //CurrentWebsite = "";
+            //TODO: Refactor code so that websites with actual IP returns are prioritized. 
+            //Doesn't necessarily first returned but creates a priority queue in which IPs are ordered by order of website reached.
             string websiteStr = "";
             bool timedOut = false;
             bool error = false;
@@ -104,10 +112,8 @@ namespace IP_Checker
             {
                 if (websites.Count == 0)
                     return false;
-                parOpts.MaxDegreeOfParallelism = websites.Count < System.Environment.ProcessorCount ? websites.Count : System.Environment.ProcessorCount;
-
+                parOpts.MaxDegreeOfParallelism = websites.Count < Environment.ProcessorCount ? websites.Count : Environment.ProcessorCount;
                 //TODO: async triple IP check.
-
                 Parallel.ForEach(websites, parOpts, website =>
                 {
                     try
@@ -116,7 +122,6 @@ namespace IP_Checker
                         using (client.OpenRead(website))
                             parOpts.CancellationToken.ThrowIfCancellationRequested();
                         websiteStr = website;
-
                     }
                     catch (OperationCanceledException ex)
                     {
@@ -135,8 +140,8 @@ namespace IP_Checker
                 }
                 );
 
-                if (!websiteStr.Equals(""))
-                    timedOut = false;
+                //if (!websiteStr.Equals(""))
+                //    timedOut = false;
 
                 //timerCB = new TimerCallback(ResetTitle);
                 //var _ = new Timer(timerCB, null, 2000, 2000);
@@ -151,18 +156,6 @@ namespace IP_Checker
         //Delegates are simple and defined by MainWindow.
         public static Action<string> UpdateIPAction;
         public static Action<HashSet<string>> UpdateWebsitesAction;
-        public delegate void WebsiteChangeHandler(string websiteFieldText);
-        private static WebsiteChangeHandler listOfHandlers;
-        public static void RegisterWithWebsiteChanges(WebsiteChangeHandler methodToCall)
-        {
-            lock (websites)
-            {
-                if (listOfHandlers == null)
-                    listOfHandlers = methodToCall;
-                else
-                    listOfHandlers = Delegate.Combine(listOfHandlers, methodToCall) as WebsiteChangeHandler;
-            }
-        }
         public static void AddWebsite(string websiteFieldText)
         {
             try

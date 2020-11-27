@@ -7,7 +7,6 @@
         mc:Ignorable="d"
         Title="IP Checka" Height="352.5" Width="658.5">
     <Grid>
-        <Button Content="Check IP" HorizontalAlignment="Left" Margin="10,78,0,0" VerticalAlignment="Top" Width="58" Height="26" Click="CheckIP_Click"/>
         <TextBlock x:Name="IP_FieldHeader" HorizontalAlignment="Left" Margin="10,26,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Height="24" Width="21" FontSize="18" TextDecorations="Underline"><Run Text="IP" TextDecorations="Underline"/><Run Text=":"/></TextBlock>
         <TextBlock x:Name="IP_Value" HorizontalAlignment="Left" Height="47" Margin="33,26,0,0" TextWrapping="Wrap" Text="TextBlock" VerticalAlignment="Top" Width="607" FontSize="18"/>
         <TextBlock HorizontalAlignment="Left" Margin="10,122,0,0" TextWrapping="Wrap" Text="Website:" VerticalAlignment="Top" Height="24" Width="48" RenderTransformOrigin="0.51,2.042"/>
@@ -16,6 +15,8 @@
         <TextBox x:Name="Website_Field" HorizontalAlignment="Left" Margin="58,122,0,0" TextWrapping="Wrap" Text="Type here..." VerticalAlignment="Top" Height="24" Width="172" TextDecorations="{x:Null}"/>
         <TextBlock x:Name="CurrentWebsites_Field" HorizontalAlignment="Left" Height="159" Margin="235,146,0,0" TextWrapping="Wrap" Text="TextBlock" VerticalAlignment="Top" Width="261"/>
         <TextBlock HorizontalAlignment="Left" Margin="235,122,0,0" TextWrapping="Wrap" Text="Current websites:" VerticalAlignment="Top" Height="24" Width="251"/>
+        <TextBlock x:Name="VPNStability_Field" HorizontalAlignment="Left" Margin="89,295,0,0" TextWrapping="Wrap" Text="Connection Stable" VerticalAlignment="Top" Height="16" Width="535"/>
+        <TextBlock HorizontalAlignment="Left" Margin="10,295,0,0" TextWrapping="Wrap" Text="VPN Stability: " VerticalAlignment="Top"/>
 
     </Grid>
 </Window>

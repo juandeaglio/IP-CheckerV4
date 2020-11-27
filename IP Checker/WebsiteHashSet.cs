@@ -14,8 +14,11 @@ namespace IP_Checker
         public new void Add(string websiteFieldText)
         {
             if (!base.Contains(websiteFieldText))
-            { 
-                base.Add(websiteFieldText);
+            {
+                lock (this)
+                {
+                    base.Add(websiteFieldText);
+                }
                 IPMonitor.UpdateWebsitesAction(this);
             }
         }
@@ -23,7 +26,10 @@ namespace IP_Checker
         {
             if (base.Contains(websiteFieldText))
             {
-                base.Remove(websiteFieldText);
+                lock (this)
+                {
+                    base.Remove(websiteFieldText);
+                }
                 IPMonitor.UpdateWebsitesAction(this);
             }
         }

@@ -21,28 +21,37 @@ namespace IP_Checker
     /// </summary>
     public partial class MainWindow : Window
     {
-        public string websiteFieldText;
-        private string currentIP;
-        private const string WEBSITE1 = "http://icanhazip.com";
-        private const string WEBSITE2 = "http://checkip.dyndns.org/";
+        public const string WEBSITE1 = "http://icanhazip.com";
+        public const string WEBSITE2 = "http://checkip.dyndns.org/";
         private const string WEBSITE3 = "http://ifconfig.me/ip";
-        private string websitesStr;
-
         public MainWindow()
+        {
+            InitializeComponent();
+            InitializeTextFields();
+            //TODO: Implement IP/VPN logic.
+            Task.Factory.StartNew(() => IPMonitor.Run());
+            IPMonitor.AddWebsite(WEBSITE1);
+            Task.Factory.StartNew(() => VPN_Stability_Monitor.Run());
+            
+            //Shutdown app when called for (can be replaced with system shutdown)
+            Task.Factory.StartNew(() =>
+                {
+                    while (true)
+                        if (VPN_Stability_Monitor.shutdown)
+                        {
+                            Application curApp = Application.Current;
+                            curApp.Dispatcher.Invoke(curApp.Shutdown);
+                        }
+                }
+            );
+
+        }
+        public void InitializeTextFields()
         {
             //Quick delegate assignment for website/IP changes.
             IPMonitor.UpdateIPAction = CallWhenIPChanges;
             IPMonitor.UpdateWebsitesAction = CallWhenWebsitesChanged;
-            InitializeComponent();
-            //Adds an initial test website.
-            Task.Factory.StartNew(() => IPMonitor.Run());
-            IPMonitor.AddWebsite("http://icanhazip.com");
-        }
-        private void CheckIP_Click(object sender, RoutedEventArgs e)
-        {
-
-            currentIP = IPMonitor.currentIP;
-            //IP_Value.Text = currentIP;
+            VPN_Stability_Monitor.UpdateStabilityAction = CallWhenStabilityChanges;
         }
         private void Add_Click(object sender, RoutedEventArgs e)
         {
@@ -61,6 +70,7 @@ namespace IP_Checker
         public void CallWhenWebsitesChanged(HashSet<string> websites)
         {
             //Updates our UI with current websites we are considering to be used.
+            string websitesStr;
             websitesStr = "";
             foreach(string website in websites)
             {
@@ -71,8 +81,11 @@ namespace IP_Checker
         public void CallWhenIPChanges(string ip)
         {
             //Updates our UI with current IP + website being used.
-            currentIP = ip;
-            this.Dispatcher.Invoke(() => { IP_Value.Text = currentIP; });
+            this.Dispatcher.Invoke(() => IP_Value.Text = ip );
+        }
+        public void CallWhenStabilityChanges(string stability)
+        {
+            this.Dispatcher.Invoke(() => VPNStability_Field.Text = stability);
         }
         public void DisplayTextRequest(string text)
         {
