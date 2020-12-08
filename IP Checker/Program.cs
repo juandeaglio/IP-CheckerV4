@@ -27,7 +27,6 @@ namespace IP_Checker
         public bool running2 = false;
         public Gtk.Window myWin;
         WindowComponentManager manager;
-        Label ipLabel;
         public string websiteFieldText;
         private string currentIP;
         private const string WEBSITE1 = "http://icanhazip.com";
@@ -42,14 +41,41 @@ namespace IP_Checker
 
             myWin = new Gtk.Window("IP Checka");
             manager = new WindowComponentManager(myWin);
-
-            IPMonitor.UpdateIPAction = CallWhenIPChanges;
-            IPMonitor.UpdateWebsitesAction = CallWhenWebsitesChanged;
+            InitializeTextFields();
             //Adds an initial test website.
             //Task.Factory.StartNew(() => Application.Run());
             Task.Factory.StartNew(() => IPMonitor.Run());
-            Task.Factory.StartNew(() => IPMonitor.AddWebsite("http://icanhazip.com"));
+            Task.Factory.StartNew(() => IPMonitor.AddWebsite(WEBSITE1));
+            Task.Factory.StartNew(() => IPMonitor.AddWebsite(WEBSITE2));
+            ListenForShutdown();
+            Task.Factory.StartNew(() => IPMonitor.AddWebsite(WEBSITE3));
             Application.Run();
+        }
+        public void InitializeTextFields()
+        {
+            //Quick delegate assignment for website/IP changes.
+            IPMonitor.UpdateIPAction = CallWhenIPChanges;
+            IPMonitor.UpdateWebsitesAction = CallWhenWebsitesChanged;
+            VPN_Stability_Monitor.UpdateStabilityAction = CallWhenStabilityChanges;
+        }
+        public void ListenForShutdown()
+        {
+            /*
+            Task.Factory.StartNew(() =>
+                {
+                    while (true)
+                    {
+                        if (VPN_Stability_Monitor.shutdown)
+                        {
+                            Application curApp = Application.Current;
+                            //curApp.Dispatcher.Invoke(curApp.Shutdown);
+                            Thread.Sleep(200);
+                            Process.Start("shutdown", "/s /t 0");
+                        }
+                    }
+                }
+            );
+            */
         }
 
         private void Add_Click(object sender, EventArgs e)
@@ -70,30 +96,22 @@ namespace IP_Checker
         {
             //Updates our UI with current websites we are considering to be used.
             websitesStr = "";
-            if(!running2)
+            foreach(string website in websites)
             {
-                running2 = true;
-                Thread.Sleep(3000);
-                foreach(string website in websites)
-                {
-                    websitesStr += website + "\n";
-                }
-                manager.WebsiteField.Text = websitesStr;
-                running2 = false;
+                websitesStr += website + "\n";
             }
+            manager.ChangeBuffer(manager.WebsiteField, websitesStr);
         }
         public void CallWhenIPChanges(string ip)
         {
             //Updates our UI with current IP + website being used.
             currentIP = ip;
-            if(!running)
-            {
-                running = true;
-                Thread.Sleep(3000);
-                //CallWhenDisplayIPClicked();
-                manager.CurrentIPField.Text = currentIP;
-                running = false;
-            }
+            //CallWhenDisplayIPClicked();
+            manager.ChangeBuffer(manager.CurrentIPField, currentIP);
+        }
+        public void CallWhenStabilityChanges(string stability)
+        {
+            manager.ChangeBuffer(manager.VPNStabilityField,stability);
         }
         public void CallWhenDisplayIPClicked()
         {

@@ -6,9 +6,22 @@ namespace IP_Checker
     public class WindowComponentManager
     {
         public Gtk.Window currentWindow;
-        public Gtk.TextBuffer WebsiteField{get;set;}
-        public Gtk.TextBuffer CurrentIPField{get;set;}
-        
+        private Gtk.TextBuffer websiteField;
+        private Gtk.TextBuffer currentIPField;
+        private Gtk.TextBuffer vpnStabilityField;
+        public Gtk.TextBuffer WebsiteField
+        {
+            get => websiteField;
+        }
+        public Gtk.TextBuffer CurrentIPField
+        {
+            get => currentIPField;
+        }
+        public Gtk.TextBuffer VPNStabilityField
+        {
+            get => vpnStabilityField;
+
+        }
         public WindowComponentManager(Gtk.Window gtkWin)
         {
             currentWindow = new Gtk.Window("IP Checker Window");
@@ -44,9 +57,9 @@ namespace IP_Checker
             VBox box = CreateVBox(parentBox);
             CreateBoxLabel(box, "Current IP:");
             
-            CurrentIPField = new TextBuffer(new TextTagTable());
+            currentIPField = new TextBuffer(new TextTagTable());
             
-            CreateTextView(box, CurrentIPField);
+            CreateTextView(box, currentIPField);
         }
 
         private void GUICreateWebsitesField(Box parentBox)
@@ -57,8 +70,8 @@ namespace IP_Checker
             separator2.Show();
             CreateBoxLabel(box, "Websites List:");
 
-            WebsiteField = new TextBuffer(new TextTagTable());
-            CreateTextView(box, WebsiteField);
+            websiteField = new TextBuffer(new TextTagTable());
+            CreateTextView(box, websiteField);
         }
         private Label CreateBoxLabel(Box parentBox, string labelText)
         {
@@ -68,7 +81,7 @@ namespace IP_Checker
         }
         private TextView CreateTextView(Box parentBox, TextBuffer buffer)
         {
-            TextView textView = new TextView(buffer);
+            UneditableTextView textView = new UneditableTextView(buffer);
             parentBox.PackStart(textView, true, true, 0);
             textView.Show();
             return textView;
@@ -88,6 +101,14 @@ namespace IP_Checker
             parentBox.PackStart(box, false, true, 0);
             box.Show();
             return box;
+        }
+        public void ChangeBuffer(TextBuffer buffer, string toStr)
+        {
+            Gdk.Threads.AddIdle(1, () => 
+            {
+                buffer.Text = toStr;
+                return false;
+            });
         }
     }
 }

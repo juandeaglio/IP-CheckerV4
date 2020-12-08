@@ -120,9 +120,10 @@ namespace IP_Checker
                 {
                     parOpts.MaxDegreeOfParallelism = websites.Count < Environment.ProcessorCount ? websites.Count : Environment.ProcessorCount;
                     //TODO: async triple IP check.
-                    try
+
+                    Task.Factory.StartNew(() =>
                     {
-                        Task.Factory.StartNew(() =>
+                        try
                         {
                             while (true)
                             {
@@ -132,12 +133,12 @@ namespace IP_Checker
                                 }
                                 parOpts?.CancellationToken.ThrowIfCancellationRequested();
                             }
-                        });
-                    }
-                    catch (Exception ex)
-                    {
-                        cancelToken = new CancellationTokenSource();
-                    }
+                        }
+                        catch(OperationCanceledException ex)
+                        {
+                            //Log
+                        }
+                    });
                     try
                     {
                         Parallel.ForEach(websites, parOpts, website =>
