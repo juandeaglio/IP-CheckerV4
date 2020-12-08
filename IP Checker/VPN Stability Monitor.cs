@@ -84,7 +84,6 @@ namespace IP_Checker
                         //Now let's see whether we have our VPN IP (VPN is active, all is normal).
                         if (VerifyVPNIP())
                         {
-                            //Thread.Sleep(5000);
                             //Should remain the same... I think it's ready to go (Now about to check for stability issues.)
                             if (VerifyVPNIP())
                             {

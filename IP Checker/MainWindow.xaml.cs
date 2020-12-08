@@ -1,7 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
@@ -30,21 +32,26 @@ namespace IP_Checker
             InitializeTextFields();
             //TODO: Implement IP/VPN logic.
             Task.Factory.StartNew(() => IPMonitor.Run());
-            IPMonitor.AddWebsite(WEBSITE1);
             Task.Factory.StartNew(() => VPN_Stability_Monitor.Run());
-            
+
             //Shutdown app when called for (can be replaced with system shutdown)
             Task.Factory.StartNew(() =>
                 {
                     while (true)
+                    {
                         if (VPN_Stability_Monitor.shutdown)
                         {
                             Application curApp = Application.Current;
-                            curApp.Dispatcher.Invoke(curApp.Shutdown);
+                            //curApp.Dispatcher.Invoke(curApp.Shutdown);
+                            Thread.Sleep(200);
+                            Process.Start("shutdown", "/s /t 0");
                         }
+                    }
                 }
             );
-
+            this.Dispatcher.Invoke(() => IPMonitor.AddWebsite(WEBSITE1));
+            this.Dispatcher.Invoke(() => IPMonitor.AddWebsite(WEBSITE2));
+            this.Dispatcher.Invoke(() => IPMonitor.AddWebsite(WEBSITE3));
         }
         public void InitializeTextFields()
         {
@@ -57,14 +64,14 @@ namespace IP_Checker
         {
             if (!Website_Field.Text.Equals(""))
             {
-                IPMonitor.AddWebsite(Website_Field.Text);
+                this.Dispatcher.Invoke(() => IPMonitor.AddWebsite(Website_Field.Text));
             }
         }
         private void Remove_Click(object sender, RoutedEventArgs e)
         {
             if (!Website_Field.Text.Equals(""))
             {
-                IPMonitor.RemoveWebsite(Website_Field.Text);
+                this.Dispatcher.Invoke(() => IPMonitor.RemoveWebsite(Website_Field.Text));
             }
         }
         public void CallWhenWebsitesChanged(HashSet<string> websites)
