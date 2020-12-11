@@ -21,6 +21,7 @@ namespace IP_Checker
         private static string CurrentWebsite { get; set; } = "";
         private static CancellationTokenSource cancelToken = new CancellationTokenSource();
         private static string testWebsite = "";
+        private static bool done = false;
         //TODO: Future plans of timer
         //private static TimerCallback timerCB;
         static IPMonitor()
@@ -92,8 +93,8 @@ namespace IP_Checker
                 try
                 {
                     using (var client = new TimedWebClient())
-                    using (client.OpenRead(website)) ;
-                    parOpts?.CancellationToken.ThrowIfCancellationRequested();
+                    using (client.OpenRead(website));
+                    //parOpts?.CancellationToken.ThrowIfCancellationRequested();
                 }
                 catch (WebException ex)
                 {
@@ -109,6 +110,8 @@ namespace IP_Checker
             string websiteStr = "";
             bool timedOut = false;
             bool error = false;
+            done = false;
+            //cancelToken = new CancellationTokenSource();
             ParallelOptions parOpts = new ParallelOptions();
             parOpts.CancellationToken = cancelToken.Token;
             lock (websites)
@@ -120,37 +123,40 @@ namespace IP_Checker
                 {
                     parOpts.MaxDegreeOfParallelism = websites.Count < Environment.ProcessorCount ? websites.Count : Environment.ProcessorCount;
                     //TODO: async triple IP check.
-
-                    Task.Factory.StartNew(() =>
+                    /*try
                     {
-                        try
+                        Task.Factory.StartNew(() =>
                         {
-                            while (true)
+                            try
                             {
-                                if (!websiteStr.Equals(""))
+                                while (true)
                                 {
-                                    cancelToken.Cancel();
+                                    if (!websiteStr.Equals("") && done)
+                                        //cancelToken.Cancel();
+                                    //parOpts?.CancellationToken.ThrowIfCancellationRequested();
                                 }
-                                parOpts?.CancellationToken.ThrowIfCancellationRequested();
                             }
-                        }
-                        catch(OperationCanceledException ex)
-                        {
-                            //Log
-                        }
-                    });
+                            catch (OperationCanceledException ex)
+                            {
+                                
+                            }
+                        });
+                    }
+                    catch (OperationCanceledException ex)
+                    {
+                        //cancelToken = new CancellationTokenSource();
+                        //throw;
+                    }*/
                     try
                     {
                         Parallel.ForEach(websites, parOpts, website =>
                         {
                             temp = TryWebsite(website, parOpts);
-                            websiteStr = temp;
+                            if(!done)
+                                websiteStr = temp;
+                            done = true;
                         }
                         );
-                    }
-                    catch(OperationCanceledException ex)
-                    {
-                        //Log
                     }
                     catch (WebException ex)
                     {
