@@ -1,14 +1,20 @@
 using Gtk;
 using Gdk;
+using System;
 namespace IP_Checker
 {
     //Makes new components for our GTK gui, saves a lot of space of declaration and changing fields so that they are not unreadable and cumbersome to code.
     public class WindowComponentManager
     {
         public Gtk.Window currentWindow;
+        private Gtk.TextBuffer newWebsiteField;
         private Gtk.TextBuffer websiteField;
         private Gtk.TextBuffer currentIPField;
         private Gtk.TextBuffer vpnStabilityField;
+        public Gtk.TextBuffer NewWebsiteField
+        {
+            get => newWebsiteField;
+        }
         public Gtk.TextBuffer WebsiteField
         {
             get => websiteField;
@@ -20,29 +26,22 @@ namespace IP_Checker
         public Gtk.TextBuffer VPNStabilityField
         {
             get => vpnStabilityField;
-
         }
         public WindowComponentManager(Gtk.Window gtkWin)
         {
             currentWindow = new Gtk.Window("IP Checker Window");
             
-            VBox box1 = new VBox(false, 10);
+            VBox box1 = CreateVBox(null);
             currentWindow.Add(box1);
-            box1.Show();
-
-            VBox box2 = new VBox(false, 10);
-            box2.BorderWidth = 10;
-            box1.PackStart(box2, true, true, 0);
+            VBox box2 = CreateVBox(box1);
             currentWindow.Add(box2);
-            box2.Show();
+            Button addButton = CreateButton(box2, "Add Website");
+            Button removeButton = CreateButton(box2, "Remove Website");
+            addButton.Clicked += Add_Click;
+            removeButton.Clicked  += Remove_Click;
 
-            Button button1 = new Button("Add Website");
-            box2.PackStart(button1, true, true, 0);
-            button1.Show();
-
-            Button button2 = new Button("Remove Website");
-            box2.PackStart(button2, true, true, 0);
-            button2.Show();
+            newWebsiteField = new TextBuffer(new TextTagTable());
+            CreateTextView(box2, newWebsiteField, true);
 
             GUICreateCurrentIPField(box1);
             GUICreateWebsitesField(box1);
@@ -59,7 +58,7 @@ namespace IP_Checker
             
             currentIPField = new TextBuffer(new TextTagTable());
             
-            CreateTextView(box, currentIPField);
+            CreateTextView(box, currentIPField, false);
         }
 
         private void GUICreateWebsitesField(Box parentBox)
@@ -71,7 +70,7 @@ namespace IP_Checker
             CreateBoxLabel(box, "Websites List:");
 
             websiteField = new TextBuffer(new TextTagTable());
-            CreateTextView(box, websiteField);
+            CreateTextView(box, websiteField, false);
         }
         private Label CreateBoxLabel(Box parentBox, string labelText)
         {
@@ -79,18 +78,39 @@ namespace IP_Checker
             parentBox.PackStart(label, false, true, 0);
             return label;
         }
-        private TextView CreateTextView(Box parentBox, TextBuffer buffer)
+        private TextView CreateTextView(Box parentBox, TextBuffer buffer, bool editable)
         {
-            UneditableTextView textView = new UneditableTextView(buffer);
+            TextView textView;
+            if(!editable)
+                textView = new UneditableTextView(buffer);
+            else
+                textView = new TextView(buffer);
             parentBox.PackStart(textView, true, true, 0);
             textView.Show();
             return textView;
+        }
+        private Button CreateButton(Box parentBox, string buttonLabel)
+        {
+            Button button = new Button(buttonLabel);
+            parentBox.PackStart(button, false, true, 0);
+            return button;
+        }
+        private void Add_Click(object sender, EventArgs e)
+        {
+            if (!NewWebsiteField.Text.Equals(""))
+                IPMonitor.AddWebsite(NewWebsiteField.Text);
+        }
+        private void Remove_Click(object sender, EventArgs e)
+        {
+            if (!NewWebsiteField.Text.Equals(""))
+                IPMonitor.RemoveWebsite(NewWebsiteField.Text);
         }
         private VBox CreateVBox(Box parentBox)
         {
             VBox box = new VBox(false, 10);
             box.BorderWidth = 10;
-            parentBox.PackStart(box, false, true, 0);
+            if(parentBox != null)
+                parentBox.PackStart(box, false, true, 0);
             box.Show();
             return box;
         }
@@ -98,7 +118,8 @@ namespace IP_Checker
         {
             HBox box = new HBox(false, 10);
             box.BorderWidth = 10;
-            parentBox.PackStart(box, false, true, 0);
+            if(parentBox != null)
+                parentBox.PackStart(box, false, true, 0);
             box.Show();
             return box;
         }

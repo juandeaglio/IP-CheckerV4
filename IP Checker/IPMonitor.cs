@@ -152,9 +152,12 @@ namespace IP_Checker
                         Parallel.ForEach(websites, parOpts, website =>
                         {
                             temp = TryWebsite(website, parOpts);
-                            if(!done)
-                                websiteStr = temp;
-                            done = true;
+                            lock(websiteStr)
+                            {
+                                if(!done)
+                                    websiteStr = temp;
+                                done = true;
+                            }
                         }
                         );
                     }
@@ -188,7 +191,7 @@ namespace IP_Checker
 
         //Delegates are simple and defined by MainWindow.
         public static Action<string> UpdateIPAction;
-        public static Action<HashSet<string>> UpdateWebsitesAction;
+        public static Action<WebsiteHashSet> UpdateWebsitesAction;
         public static void AddWebsite(string websiteFieldText)
         {
             try

@@ -78,21 +78,7 @@ namespace IP_Checker
             */
         }
 
-        private void Add_Click(object sender, EventArgs e)
-        {
-            //if (!Website_Field.Text.Equals(""))
-            {
-            //    IPMonitor.AddWebsite(Website_Field.Text);
-            }
-        }
-        private void Remove_Click(object sender, EventArgs e)
-        {
-            //if (!Website_Field.Text.Equals(""))
-            {
-            //    IPMonitor.RemoveWebsite(Website_Field.Text);
-            }
-        }
-        public void CallWhenWebsitesChanged(HashSet<string> websites)
+        public void CallWhenWebsitesChanged(WebsiteHashSet websites)
         {
             //Updates our UI with current websites we are considering to be used.
             websitesStr = "";
