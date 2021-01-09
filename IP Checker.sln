@@ -5,6 +5,8 @@ VisualStudioVersion = 16.0.30621.155
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "IP Checker", "IP Checker\IP Checker.csproj", "{A5811275-0DC7-4742-AC24-2519451E3D25}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "IPCheckerNUnitTest", "IPCheckerNUnitTest\IPCheckerNUnitTest.csproj", "{2B9556B7-D3C0-4F24-9474-A95C18D8A12B}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -15,6 +17,10 @@ Global
 		{A5811275-0DC7-4742-AC24-2519451E3D25}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{A5811275-0DC7-4742-AC24-2519451E3D25}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{A5811275-0DC7-4742-AC24-2519451E3D25}.Release|Any CPU.Build.0 = Release|Any CPU
+		{2B9556B7-D3C0-4F24-9474-A95C18D8A12B}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{2B9556B7-D3C0-4F24-9474-A95C18D8A12B}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{2B9556B7-D3C0-4F24-9474-A95C18D8A12B}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{2B9556B7-D3C0-4F24-9474-A95C18D8A12B}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

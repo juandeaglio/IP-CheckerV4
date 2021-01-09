@@ -77,7 +77,6 @@
     <Compile Include="SessionInformationStorage.cs" />
     <Compile Include="VPN Stability Monitor.cs" />
     <Compile Include="WebIPUpdater.cs" />
-    <Compile Include="FieldManager.cs" />
     <Compile Include="TimedWebClient.cs">
       <SubType>Component</SubType>
     </Compile>
