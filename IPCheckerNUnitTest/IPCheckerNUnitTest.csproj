@@ -13,6 +13,10 @@
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\IP Checker\IP Checker.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
     <Compile Update="TimedWebClient.cs">
       <SubType>Component</SubType>
     </Compile>
