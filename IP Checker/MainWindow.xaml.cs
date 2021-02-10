@@ -45,7 +45,7 @@ namespace IP_Checker
         public void InitializeTextFields()
         {
             //Quick delegate assignment for website/IP changes.
-            IPMonitor.UpdateIPAction = CallWhenIPChanges;
+            IPMonitor.UpdateIPFieldAction = CallWhenIPChanges;
             IPMonitor.UpdateWebsitesAction = CallWhenWebsitesChanged;
             VPN_Stability_Monitor.UpdateStabilityAction = CallWhenStabilityChanges;
         }

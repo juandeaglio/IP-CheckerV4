@@ -29,54 +29,48 @@ namespace IP_Checker
         {
             Task.Factory.StartNew(CheckIP);
         }
+        private static void UpdateIPField(string currentStatus)
+        {
+            UpdateIPFieldAction?.Invoke(currentStatus);
+            Thread.Sleep(1000);
+        }
+        public static bool TryFetchIP()
+        {
+            if (IsConnectionActive())
+            {
+                TimedWebClient wc = new TimedWebClient();
+                wc.DownloadStringCompleted += new DownloadStringCompletedEventHandler(wc_DownloadStringCompleted);
+                wc.DownloadStringAsync(new Uri(CurrentWebsite));
+                void wc_DownloadStringCompleted(object sender, DownloadStringCompletedEventArgs e)
+                {
+                    string regexPattern = @"\d*\.\d*\.\d*\.\d*";
+                    Regex rgx = new Regex(regexPattern);
+                    currentIP = rgx.Match(e.Result).Value;
+                    currentIPField = currentIP + " using " + CurrentWebsite;
+                    UpdateIPField(currentIPField);
+                }
+                return true;
+            }
+            //TODO: Check for internet outage on delegate counter. Shuts down after a certain limit. Logs shutdown.
+            else
+            {
+                currentIP = "";
+                UpdateIPField("No Internet: " + CurrentWebsite);
+                return false;
+            }
+        }
         public static void CheckIP()
         {
             while (true)
             {
-                static void UpdateIP(string currentStatus)
-                {
-                    UpdateIPAction(currentStatus);
-                    Thread.Sleep(1000);
-                }
                 if (websites.Count > 0)
                 {
-                    if (IsConnectionActive())
-                    {
-                        TimedWebClient wc = new TimedWebClient();
-                        wc.DownloadStringCompleted += new DownloadStringCompletedEventHandler(wc_DownloadStringCompleted);
-                        wc.DownloadStringAsync(new Uri(CurrentWebsite));
-                        //Download IP, sort out useless info with regex.
-                        void wc_DownloadStringCompleted(object sender, DownloadStringCompletedEventArgs e)
-                        {
-                            try
-                            {
-                                //When string is downloaded use a regex pattern to get IP: (digits [dot] digits [dot] digits [dot] digits)
-                                string regexPattern = @"\d*\.\d*\.\d*\.\d*";
-                                Regex rgx = new Regex(regexPattern);
-                                //if(!stop)
-                                currentIP = rgx.Match(e.Result).Value;
-                                //else
-                                //    currentIP = "126.44.36.226";
-                                currentIPField = currentIP + " using " + CurrentWebsite;
-                                UpdateIP(currentIPField);
-                            }
-                            catch
-                            {
-                                //TODO: Some sort of logging of exception for a download failed.
-                            }
-                        }
-                    }
-                    //TODO: Check for internet outage on delegate counter. Shuts down after a certain limit. Logs shutdown.
-                    else
-                    {
-                        currentIP = "";
-                        UpdateIP("No Internet: " + CurrentWebsite);
-                    }
+                    TryFetchIP();
                 }
                 else
                 {
                     currentIP = "";
-                    UpdateIP("No websites, unable to determine.");
+                    UpdateIPField("No websites, unable to determine.");
                 }
             }
         }
@@ -177,7 +171,7 @@ namespace IP_Checker
         }
 
         //Delegates are simple and defined by MainWindow.
-        public static Action<string> UpdateIPAction;
+        public static Action<string> UpdateIPFieldAction;
         public static Action<HashSet<string>> UpdateWebsitesAction;
         public static void AddWebsite(string websiteFieldText)
         {

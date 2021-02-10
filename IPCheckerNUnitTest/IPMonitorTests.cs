@@ -65,10 +65,10 @@ namespace IPCheckerNUnitTest
             return true;
         }
         [Test]
-        public void ShouldHaveNoConnection()
+        public void ShouldFetchIP()
         {
-            Assert.IsFalse(IPMonitor.IsConnectionActive());
-
+            IPMonitor.AddWebsite(WEBSITE1);
+            Assert.IsTrue(IPMonitor.TryFetchIP());
         }
     }
 }
