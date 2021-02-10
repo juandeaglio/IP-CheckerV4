@@ -1,11 +1,7 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Diagnostics;
-using System.Linq;
-using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading;
-using System.Threading.Tasks;
 
 namespace IP_Checker
 {
@@ -32,7 +28,7 @@ namespace IP_Checker
         public static bool shutdown = false;
         private static MonitorInformation mi;
         static VPN_Stability_Monitor()
-        {           
+        {
             //reads HomeIP from previous uses, reads VPNIP from previous uses
             // else it gets both on its own.
             SessionInformationStorage sis = new SessionInformationStorage();
@@ -59,10 +55,10 @@ namespace IP_Checker
         {
             if (IPMonitor.currentIP != null)
             {
-                if (IsValidIP(IPMonitor.currentIP) && IsSimilarTo(IPMonitor.currentIP,mi.VPNIP, 3))
+                if (IsValidIP(IPMonitor.currentIP) && IsSimilarTo(IPMonitor.currentIP, mi.VPNIP, 3))
                     SetShutdownThresholdCounter(0);
                 else if (IPMonitor.currentIP.Equals(mi.HomeIP) || !IsSimilarTo(IPMonitor.currentIP, mi.VPNIP, 3))
-                    SetShutdownThresholdCounter(totalWarnings+1);
+                    SetShutdownThresholdCounter(totalWarnings + 1);
 
                 Stability = thresholdReached ? $"Connection unstable after {totalWarnings} tries." : $"VPN active {mi.VPNIP}, connection stable. Home IP: {mi.HomeIP}";
                 UpdateStabilityAction(Stability);
@@ -123,7 +119,7 @@ namespace IP_Checker
             //Checks if our stored IP is the same as the home IP we get from runtime,
             // if not: the new homeIP is rewritten if there exists an IP that is valid.
             //Otherwise, the internet is clearly not working and we return false.
-            
+
             //Is IPMonitor equal to VPN? Short circuit to VPN IP without knowledge of home IP- true.
             if ((IPMonitor.currentIP.Equals(mi.VPNIP) || IsSimilarTo(IPMonitor.currentIP, mi.VPNIP, 9)) && !IsSimilarTo(mi.HomeIP, mi.VPNIP, 9) || IsValidIP(mi.HomeIP))
             {
@@ -136,7 +132,7 @@ namespace IP_Checker
             else if (!IPMonitor.currentIP.Equals(mi.HomeIP))
             {
                 //If the IP is valid, and is similar to a previous home IP OR at the very least NOT similar to an old VPN IP (that was valid),
-                if(IsValidIP(IPMonitor.currentIP) && !IsSimilarTo(mi.VPNIP, IPMonitor.currentIP, 9))
+                if (IsValidIP(IPMonitor.currentIP) && !IsSimilarTo(mi.VPNIP, IPMonitor.currentIP, 9))
                 {
                     //Set it and true.
                     mi.HomeIP = IPMonitor.currentIP;
@@ -188,7 +184,7 @@ namespace IP_Checker
         }
         public static bool IsValidIP(string ip)
         {
-            if(ip != null && !ip.Equals("") && Regex.IsMatch(ip, @"\d*\.\d*\.\d*\.\d*"))
+            if (ip != null && !ip.Equals("") && Regex.IsMatch(ip, @"\d*\.\d*\.\d*\.\d*"))
                 return true;
             return false;
         }
@@ -196,7 +192,7 @@ namespace IP_Checker
         {
             if (IsValidIP(ip) && IsValidIP(ip2) && ip.Substring(0, length).Equals(ip2.Substring(0, length)))
                 return true;
-            else 
+            else
                 return false;
         }
         public static bool VPNIsActive()

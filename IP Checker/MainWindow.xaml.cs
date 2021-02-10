@@ -1,19 +1,8 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Diagnostics;
-using System.Linq;
-using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Windows;
-using System.Windows.Controls;
-using System.Windows.Data;
-using System.Windows.Documents;
-using System.Windows.Input;
-using System.Windows.Media;
-using System.Windows.Media.Imaging;
-using System.Windows.Navigation;
-using System.Windows.Shapes;
 
 namespace IP_Checker
 {
@@ -79,7 +68,7 @@ namespace IP_Checker
             //Updates our UI with current websites we are considering to be used.
             string websitesStr;
             websitesStr = "";
-            foreach(string website in websites)
+            foreach (string website in websites)
             {
                 websitesStr += website + "\n";
             }
@@ -88,7 +77,7 @@ namespace IP_Checker
         public void CallWhenIPChanges(string ip)
         {
             //Updates our UI with current IP + website being used.
-            this.Dispatcher.Invoke(() => IP_Value.Text = ip );
+            this.Dispatcher.Invoke(() => IP_Value.Text = ip);
         }
         public void CallWhenStabilityChanges(string stability)
         {

@@ -1,6 +1,5 @@
-using NUnit.Framework;
 using IP_Checker;
-using System;
+using NUnit.Framework;
 namespace IPCheckerNUnitTest
 {
     public class Tests
@@ -65,6 +64,11 @@ namespace IPCheckerNUnitTest
             }
             return true;
         }
+        [Test]
+        public void ShouldHaveNoConnection()
+        {
+            Assert.IsFalse(IPMonitor.IsConnectionActive());
 
+        }
     }
 }
