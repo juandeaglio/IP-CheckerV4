@@ -31,7 +31,10 @@ namespace IP_Checker
         }
         private static void UpdateIPField(string currentStatus)
         {
-            UpdateIPFieldAction?.Invoke(currentStatus);
+            if(!currentStatus.Equals(""))
+                UpdateIPFieldAction?.Invoke(currentStatus);
+            else
+                UpdateIPFieldAction?.Invoke("No internet or 0 websites listed.");
             Thread.Sleep(1000);
         }
         public static bool TryFetchIP()
@@ -55,7 +58,7 @@ namespace IP_Checker
             else
             {
                 currentIP = "";
-                UpdateIPField("No Internet: " + CurrentWebsite);
+                UpdateIPField(currentIP);
                 return false;
             }
         }
@@ -70,88 +73,48 @@ namespace IP_Checker
                 else
                 {
                     currentIP = "";
-                    UpdateIPField("No websites, unable to determine.");
+                    UpdateIPField(currentIP);
                 }
             }
+        }
+        static string TryWebsite(string website, ParallelOptions parOpts)
+        {
+            try
+            {
+                using (var client = new TimedWebClient())
+                using (client.OpenRead(website)) ;
+                parOpts?.CancellationToken.ThrowIfCancellationRequested();
+            }
+            catch (WebException ex)
+            {
+                //TODO: Logging if a particular link timedOut (needs replacement or checking) GUI feedback if this occurs.
+                testWebsite = website;
+            }
+            catch (OperationCanceledException ex)
+            {
+                //TODO: Logging which one is slower. GUI Feedback of stats on website speeds.
+            }
+            return website;
         }
         public static bool IsConnectionActive()
         {
             //TODO: Refactor code so that websites with actual IP returns are prioritized. 
-            //Doesn't necessarily first returned but creates a priority queue in which IPs are ordered by order of website reached.
-            static string TryWebsite(string website, ParallelOptions parOpts)
-            {
-                try
-                {
-                    using (var client = new TimedWebClient())
-                    using (client.OpenRead(website)) ;
-                    parOpts?.CancellationToken.ThrowIfCancellationRequested();
-                }
-                catch (WebException ex)
-                {
-                    //TODO: Logging if a particular link timedOut (needs replacement or checking) GUI feedback if this occurs.
-                    testWebsite = website;
-                }
-                catch (OperationCanceledException ex)
-                {
-                    //TODO: Logging which one is slower. GUI Feedback of stats on website speeds.
-                }
-                return website;
-            }
-            string websiteStr = "";
-            bool timedOut = false;
+            string websiteStr = null;
             bool error = false;
-            ParallelOptions parOpts = new ParallelOptions();
-            parOpts.CancellationToken = cancelToken.Token;
+
             lock (websites)
             {
-                string temp;
-                if (websites.Count == 0)
-                    return false;
-                else if (websites.Count > 1)
+                if (websites.Count > 1)
                 {
-                    parOpts.MaxDegreeOfParallelism = websites.Count < Environment.ProcessorCount ? websites.Count : Environment.ProcessorCount;
-                    //TODO: async triple IP check.
-                    try
-                    {
-                        Task.Factory.StartNew(() =>
-                        {
-                            while (true)
-                            {
-                                if (!websiteStr.Equals(""))
-                                {
-                                    cancelToken.Cancel();
-                                }
-                                parOpts?.CancellationToken.ThrowIfCancellationRequested();
-                            }
-                        });
-                    }
-                    catch (Exception ex)
-                    {
-                        cancelToken = new CancellationTokenSource();
-                    }
-                    try
-                    {
-                        Parallel.ForEach(websites, parOpts, website =>
-                        {
-                            temp = TryWebsite(website, parOpts);
-                            websiteStr = temp;
-                        }
-                        );
-                    }
-                    catch (OperationCanceledException ex)
-                    {
-                        //Log
-                    }
-                    catch (WebException ex)
-                    {
-                        websiteStr = testWebsite;
-                        error = true;
-                    }
+                    ParallelTryWebsite(ref websiteStr, ref error);
                 }
                 else
                 {
+                    string temp;
                     try
                     {
+                        if (websites.Count() == 0)
+                            return false;
                         temp = TryWebsite(websites.First(), null);
                         websiteStr = temp;
                     }
@@ -165,9 +128,34 @@ namespace IP_Checker
             cancelToken.Cancel();
             CurrentWebsite = websiteStr;
             Title = CurrentWebsite + "is now being used...";
-            //If a timeout or error occurs, we will return false(IP not updated), otherwise true.
             cancelToken = new CancellationTokenSource();
             return !error;
+        }
+
+        private static void ParallelTryWebsite(ref string websiteStr, ref bool error)
+        {
+            string temp;
+            ParallelOptions parOpts = new ParallelOptions();
+            parOpts.CancellationToken = cancelToken.Token;
+            parOpts.MaxDegreeOfParallelism = websites.Count < Environment.ProcessorCount ? websites.Count : Environment.ProcessorCount;
+            try
+            {
+                Parallel.ForEach(websites, parOpts, website =>
+                {
+                    temp = TryWebsite(website, parOpts);
+                    website = temp;
+                }
+                );
+            }
+            catch (OperationCanceledException ex)
+            {
+                //TODO: Log
+            }
+            catch (WebException ex)
+            {
+                websiteStr = testWebsite;
+                error = true;
+            }
         }
 
         //Delegates are simple and defined by MainWindow.
