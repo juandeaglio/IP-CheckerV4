@@ -101,7 +101,6 @@ namespace IP_Checker
             //TODO: Refactor code so that websites with actual IP returns are prioritized. 
             string websiteStr = null;
             bool error = false;
-
             lock (websites)
             {
                 if (websites.Count > 1)
@@ -173,7 +172,6 @@ namespace IP_Checker
             {
                 //TODO: Logging incorrect website added or unreachable website. GUI feedback if incorrect.
             }
-            //Display add success notification.
         }
         public static void RemoveWebsite(string websiteFieldText)
         {

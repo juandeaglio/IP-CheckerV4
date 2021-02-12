@@ -6,7 +6,7 @@ using System.Threading;
 namespace IP_Checker
 {
     [Serializable]
-    struct MonitorInformation
+    public struct MonitorInformation
     {
         public MonitorInformation(string homeIP, string vpnIP)
         {
@@ -17,7 +17,7 @@ namespace IP_Checker
         public string VPNIP;
     }
 
-    static class VPN_Stability_Monitor
+    public static class VPN_Stability_Monitor
     {
         static string FILENAME = "IPFile.dat";
         private static int totalWarnings;
@@ -26,7 +26,7 @@ namespace IP_Checker
         private static string Stability { get; set; }
         public static bool test = false;
         public static bool shutdown = false;
-        private static MonitorInformation mi;
+        public static MonitorInformation mi;
         static VPN_Stability_Monitor()
         {
             //reads HomeIP from previous uses, reads VPNIP from previous uses
@@ -101,7 +101,6 @@ namespace IP_Checker
                             UpdateStabilityAction(Stability);
                         }
                         Thread.Sleep(1000);
-                        //}
                     }
                     else
                     {
@@ -116,25 +115,14 @@ namespace IP_Checker
         }
         public static bool VerifyHomeIP()
         {
-            //Checks if our stored IP is the same as the home IP we get from runtime,
-            // if not: the new homeIP is rewritten if there exists an IP that is valid.
-            //Otherwise, the internet is clearly not working and we return false.
-
-            //Is IPMonitor equal to VPN? Short circuit to VPN IP without knowledge of home IP- true.
             if ((IPMonitor.currentIP.Equals(mi.VPNIP) || IsSimilarTo(IPMonitor.currentIP, mi.VPNIP, 9)) && !IsSimilarTo(mi.HomeIP, mi.VPNIP, 9) || IsValidIP(mi.HomeIP))
-            {
                 return true;
-            }
-            //Is IPMonitor equal to home? -true
             else if (IsValidIP(mi.HomeIP) && IPMonitor.currentIP.Equals(mi.HomeIP))
                 return true;
-            //IP Monitor is not equal to home but...
             else if (!IPMonitor.currentIP.Equals(mi.HomeIP))
             {
-                //If the IP is valid, and is similar to a previous home IP OR at the very least NOT similar to an old VPN IP (that was valid),
-                if (IsValidIP(IPMonitor.currentIP) && !IsSimilarTo(mi.VPNIP, IPMonitor.currentIP, 9))
+            if (IsValidIP(IPMonitor.currentIP) && !IsSimilarTo(mi.VPNIP, IPMonitor.currentIP, 9))
                 {
-                    //Set it and true.
                     mi.HomeIP = IPMonitor.currentIP;
                     SessionInformationStorage sis = new SessionInformationStorage();
                     sis.Serialize(mi, FILENAME);

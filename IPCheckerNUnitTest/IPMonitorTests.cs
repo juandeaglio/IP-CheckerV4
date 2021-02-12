@@ -2,7 +2,7 @@ using IP_Checker;
 using NUnit.Framework;
 namespace IPCheckerNUnitTest
 {
-    public class Tests
+    public class IPMonitorTests
     {
         public const string WEBSITE1 = "http://icanhazip.com";
         public const string WEBSITE2 = "http://checkip.dyndns.org/";
@@ -69,6 +69,39 @@ namespace IPCheckerNUnitTest
         {
             IPMonitor.AddWebsite(WEBSITE1);
             Assert.IsTrue(IPMonitor.TryFetchIP());
+        }
+    }
+    public class VPNStabilityTests
+    {
+        [SetUp]
+        public void Setup()
+        {
+            VPN_Stability_Monitor.mi.HomeIP = "";
+            VPN_Stability_Monitor.mi.VPNIP = "";
+        }
+        [Test]
+        public void ShouldVerifyVPNIP()
+        {
+            VPN_Stability_Monitor.mi.HomeIP = "47.144.17.23";
+            VPN_Stability_Monitor.mi.VPNIP = "192.168.0.112";
+            IPMonitor.currentIP = "192.168.0.812";
+            Assert.IsTrue(VPN_Stability_Monitor.VerifyVPNIP());
+        }
+        [Test]
+        public void ShouldVerifyHomeIP()
+        {
+            VPN_Stability_Monitor.mi.HomeIP = "47.144.17.23";
+            VPN_Stability_Monitor.mi.VPNIP = "192.168.0.112";
+            IPMonitor.currentIP = "47.144.17.23";
+            Assert.IsTrue(VPN_Stability_Monitor.VerifyHomeIP());
+        }
+        [Test]
+        public void ShouldNotVerifyHomeIP()
+        {
+            VPN_Stability_Monitor.mi.HomeIP = "34.343.232.12";
+            VPN_Stability_Monitor.mi.VPNIP = "192.168.0.112";
+            IPMonitor.currentIP = "65.65.65.65";
+            Assert.IsFalse(VPN_Stability_Monitor.VerifyHomeIP());
         }
     }
 }
