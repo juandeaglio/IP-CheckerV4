@@ -117,18 +117,21 @@ namespace IP_Checker
         {
             if ((IPMonitor.currentIP.Equals(mi.VPNIP) || IsSimilarTo(IPMonitor.currentIP, mi.VPNIP, 9)) && !IsSimilarTo(mi.HomeIP, mi.VPNIP, 9) || IsValidIP(mi.HomeIP))
                 return true;
-            else if (IsValidIP(mi.HomeIP) && IPMonitor.currentIP.Equals(mi.HomeIP))
-                return true;
-            else if (!IPMonitor.currentIP.Equals(mi.HomeIP))
+            else if (IsValidIP(mi.HomeIP))
             {
-            if (IsValidIP(IPMonitor.currentIP) && !IsSimilarTo(mi.VPNIP, IPMonitor.currentIP, 9))
-                {
-                    mi.HomeIP = IPMonitor.currentIP;
-                    SessionInformationStorage sis = new SessionInformationStorage();
-                    sis.Serialize(mi, FILENAME);
+                if( IPMonitor.currentIP.Equals(mi.HomeIP))
                     return true;
+                else
+                {
+                    if (IsSimilarTo(mi.HomeIP, IPMonitor.currentIP, 9))
+                    {
+                        mi.HomeIP = IPMonitor.currentIP;
+                        SessionInformationStorage sis = new SessionInformationStorage();
+                        sis.Serialize(mi, FILENAME);
+                        return true;
+                    }
+                    return false;
                 }
-                return false;
             }
             else
                 return false;

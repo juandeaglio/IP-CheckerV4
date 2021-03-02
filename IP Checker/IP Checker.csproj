@@ -74,6 +74,7 @@
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </ApplicationDefinition>
+    <Compile Include="ServerSocket.cs" />
     <Compile Include="SessionInformationStorage.cs" />
     <Compile Include="VPN Stability Monitor.cs" />
     <Compile Include="WebIPUpdater.cs" />

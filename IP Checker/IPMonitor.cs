@@ -5,6 +5,7 @@ using System.Net;
 using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
+using System.Net.Sockets;
 
 namespace IP_Checker
 {
@@ -14,6 +15,7 @@ namespace IP_Checker
         public static WebsiteHashSet websites;
         public static string currentIP;
         public static string currentIPField;
+        private static string websiteStr;
         //public static bool stop = false;
         private static string CurrentWebsite { get; set; } = "";
         private static CancellationTokenSource cancelToken = new CancellationTokenSource();
@@ -28,6 +30,12 @@ namespace IP_Checker
         public static void Run()
         {
             Task.Factory.StartNew(CheckIP);
+            new Thread(() =>
+            {
+                while(currentIP == null|| currentIP.Equals(""))
+                { }
+                SynchronousSocketListener.StartListening(currentIP);
+            }).Start();
         }
         private static void UpdateIPField(string currentStatus)
         {
@@ -77,13 +85,14 @@ namespace IP_Checker
                 }
             }
         }
-        static string TryWebsite(string website, ParallelOptions parOpts)
+        static bool TryWebsite(string website, ParallelOptions parOpts)
         {
             try
             {
                 using (var client = new TimedWebClient())
-                using (client.OpenRead(website)) ;
+                using (client.OpenRead(website))
                 parOpts?.CancellationToken.ThrowIfCancellationRequested();
+                return true;
             }
             catch (WebException ex)
             {
@@ -94,28 +103,32 @@ namespace IP_Checker
             {
                 //TODO: Logging which one is slower. GUI Feedback of stats on website speeds.
             }
-            return website;
+            return false;
         }
         public static bool IsConnectionActive()
         {
             //TODO: Refactor code so that websites with actual IP returns are prioritized. 
-            string websiteStr = null;
+            websiteStr = null;
             bool error = false;
+            Thread.Sleep(2000);
             lock (websites)
             {
                 if (websites.Count > 1)
                 {
-                    ParallelTryWebsite(ref websiteStr, ref error);
+                    new Thread(() => ParallelTryWebsite(ref error)).Start();
+                    while (websiteStr == null)
+                    { }
+                    cancelToken.Cancel();
+                    cancelToken = new CancellationTokenSource();
                 }
                 else
                 {
-                    string temp;
                     try
                     {
                         if (websites.Count() == 0)
                             return false;
-                        temp = TryWebsite(websites.First(), null);
-                        websiteStr = temp;
+                        if (TryWebsite(websites.First(), null))
+                            websiteStr = websites.First();
                     }
                     catch (WebException ex)
                     {
@@ -124,25 +137,34 @@ namespace IP_Checker
                     }
                 }
             }
-            cancelToken.Cancel();
+            while(websiteStr == null || websiteStr.Equals(""))
+            {
+            }
+
             CurrentWebsite = websiteStr;
             Title = CurrentWebsite + "is now being used...";
-            cancelToken = new CancellationTokenSource();
+
             return !error;
         }
 
-        private static void ParallelTryWebsite(ref string websiteStr, ref bool error)
+        private static void ParallelTryWebsite(ref bool error)
         {
-            string temp;
             ParallelOptions parOpts = new ParallelOptions();
             parOpts.CancellationToken = cancelToken.Token;
             parOpts.MaxDegreeOfParallelism = websites.Count < Environment.ProcessorCount ? websites.Count : Environment.ProcessorCount;
+            string temp = null;
+            bool written = false;
             try
             {
-                Parallel.ForEach(websites, parOpts, website =>
+                Parallel.ForEach(websites, (currentWebsite) =>
                 {
-                    temp = TryWebsite(website, parOpts);
-                    website = temp;
+                    if(TryWebsite(currentWebsite, parOpts))
+                    {
+                        if (!written)
+                        {
+                            websiteStr = currentWebsite;
+                        }
+                    }
                 }
                 );
             }
@@ -155,6 +177,7 @@ namespace IP_Checker
                 websiteStr = testWebsite;
                 error = true;
             }
+
         }
 
         //Delegates are simple and defined by MainWindow.
