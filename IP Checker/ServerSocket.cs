@@ -8,10 +8,7 @@ namespace IP_Checker
 {
     public class SynchronousSocketListener
     {
-
-        // Incoming data from the client.  
         public static string data = null;
-
         public static void StartListening(string ip)
         {
             byte[] bytes = new Byte[1024];
