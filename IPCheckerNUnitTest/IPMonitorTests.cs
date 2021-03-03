@@ -68,6 +68,7 @@ namespace IPCheckerNUnitTest
         public void ShouldFetchIP()
         {
             IPMonitor.AddWebsite(WEBSITE1);
+            Assert.IsTrue(IPMonitor.IsConnectionActive());
             Assert.IsTrue(IPMonitor.TryFetchIP());
         }
     }

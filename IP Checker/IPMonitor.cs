@@ -29,7 +29,7 @@ namespace IP_Checker
 
         public static void Run()
         {
-            Task.Factory.StartNew(CheckIP);
+            Task.Factory.StartNew(CheckIPAndUpdate);
             new Thread(() =>
             {
                 while(currentIP == null|| currentIP.Equals(""))
@@ -46,7 +46,7 @@ namespace IP_Checker
         }
         public static bool TryFetchIP()
         {
-            if (IsConnectionActive())
+            if (websites.Count() != 0)
             {
                 TimedWebClient wc = new TimedWebClient();
                 wc.DownloadStringCompleted += new DownloadStringCompletedEventHandler(wc_DownloadStringCompleted);
@@ -61,17 +61,21 @@ namespace IP_Checker
                 }
                 return true;
             }
-            currentIP = "";
-            UpdateIPField(currentIP);
-            return false;
+            else
+            {
+                currentIP = "";
+                UpdateIPField(currentIP);
+                return false;
+            }
 
         }
-        public static void CheckIP()
+        public static void CheckIPAndUpdate()
         {
             while (true)
             {
-                if (websites.Count > 0)
+                if (IsConnectionActive())
                 {
+
                     TryFetchIP();
                     Thread.Sleep(100);
                 }
@@ -82,13 +86,13 @@ namespace IP_Checker
                 }
             }
         }
-        static bool TryWebsite(string website, ParallelOptions parOpts)
+        static bool TryWebsite(string website)
         {
             try
             {
                 using (var client = new TimedWebClient())
                 using (client.OpenRead(website))
-                parOpts?.CancellationToken.ThrowIfCancellationRequested();
+                websiteStr = website;
                 return true;
             }
             catch (WebException ex)
@@ -111,35 +115,21 @@ namespace IP_Checker
                 if (websites.Count > 1)
                 {
                     new Thread(() => ParallelTryWebsite(ref error)).Start();
-                    while (websiteStr == null)
-                    { }
+                    WaitForWebsiteToChange();
                     cancelToken.Cancel();
                     cancelToken = new CancellationTokenSource();
                 }
                 else
-                {
-                    try
-                    {
-                        if (websites.Count() == 0)
-                            return false;
-                        if (TryWebsite(websites.First(), null))
-                            websiteStr = websites.First();
-                    }
-                    catch (WebException ex)
-                    {
-                        websiteStr = testWebsite;
-                        error = true;
-                    }
-                }
+                    TryWebsite(websites.First());
             }
-            while(websiteStr == null || websiteStr.Equals(""))
-            {
-            }
-
             CurrentWebsite = websiteStr;
-            Title = CurrentWebsite + "is now being used...";
-
             return !error;
+        }
+
+        private static void WaitForWebsiteToChange()
+        {
+            while (websiteStr == null)
+            { }
         }
 
         private static void ParallelTryWebsite(ref bool error)
@@ -153,7 +143,7 @@ namespace IP_Checker
             {
                 Parallel.ForEach(websites, (currentWebsite) =>
                 {
-                    if(TryWebsite(currentWebsite, parOpts))
+                    if(TryWebsite(currentWebsite))
                     {
                         if (!written)
                         {
