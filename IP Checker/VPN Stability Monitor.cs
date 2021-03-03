@@ -115,11 +115,11 @@ namespace IP_Checker
         }
         public static bool VerifyHomeIP()
         {
-            if ((IPMonitor.currentIP.Equals(mi.VPNIP) || IsSimilarTo(IPMonitor.currentIP, mi.VPNIP, 9)) && !IsSimilarTo(mi.HomeIP, mi.VPNIP, 9) || IsValidIP(mi.HomeIP))
+            if (IsSimilarTo(IPMonitor.currentIP, mi.VPNIP, 9) && !IsSimilarTo(mi.HomeIP, mi.VPNIP, 9))
                 return true;
             else if (IsValidIP(mi.HomeIP))
             {
-                if( IPMonitor.currentIP.Equals(mi.HomeIP))
+                if (IPMonitor.currentIP.Equals(mi.HomeIP))
                     return true;
                 else
                 {
@@ -134,54 +134,66 @@ namespace IP_Checker
                 }
             }
             else
-                return false;
+            {
+                if (IsValidIP(IPMonitor.currentIP))
+                {
+                    mi.HomeIP = IPMonitor.currentIP;
+                    SessionInformationStorage sis = new SessionInformationStorage();
+                    sis.Serialize(mi, FILENAME);
+                    return true;
+                }
+                else
+                    return false;
+            }
         }
         public static bool VerifyVPNIP()
         {
-            /*if (test)
+            if (IsValidIP(mi.VPNIP))
             {
-                IPMonitor.currentIP = "126.44.36.226";
-                IPMonitor.stop = true;
-            }*/
-            //If the VPN ip is valid, check if it is similar to our home IP, if it is reset VPN IP and false.
-            if (IsValidIP(mi.VPNIP) && IsSimilarTo(mi.VPNIP, mi.HomeIP, 9))
-            {
-                //test = true;
-                mi.VPNIP = "";
-                return false;
+                if (IsSimilarTo(mi.VPNIP, mi.HomeIP, 9))
+                {
+                    mi.VPNIP = "";
+                    return false;
+                }
+                else if (IsSimilarTo(IPMonitor.currentIP, mi.VPNIP, 3))
+                {
+                    return true;
+                }
+                else
+                    return false;
             }
-            //If the VPN IP is valid, and our current IP is equal to VPN ip.
-            else if (IsValidIP(mi.VPNIP) && IsSimilarTo(IPMonitor.currentIP, mi.VPNIP, 3))
+            else if (!IPMonitor.currentIP.Equals(mi.HomeIP) && IsValidIP(IPMonitor.currentIP))
             {
-                //test = true;
+                mi.VPNIP = IPMonitor.currentIP;
+                SessionInformationStorage sis = new SessionInformationStorage();
+                sis.Serialize(mi, FILENAME);
                 return true;
             }
-            //If the current IP is not equal to VPN IP...
-            else if (!IPMonitor.currentIP.Equals(mi.VPNIP))
+            else
             {
-                // Check if it is valid, then check if it is NOT similar to home IP
-                if (IsValidIP(IPMonitor.currentIP) && !IsSimilarTo(IPMonitor.currentIP, mi.HomeIP, 9))
+                if (!IsSimilarTo(IPMonitor.currentIP, mi.HomeIP, 9))
                 {
-                    //Set the VPNIP to whatever IPMonitor reads.
                     mi.VPNIP = IPMonitor.currentIP;
                     SessionInformationStorage sis = new SessionInformationStorage();
                     sis.Serialize(mi, FILENAME);
                     return true;
                 }
-                //test = true;
-                return false;
+                else
+                    return false;
             }
-            return false;
         }
         public static bool IsValidIP(string ip)
         {
             if (ip != null && !ip.Equals("") && Regex.IsMatch(ip, @"\d*\.\d*\.\d*\.\d*"))
                 return true;
-            return false;
+            else
+                return false;
         }
         public static bool IsSimilarTo(string ip, string ip2, int length)
         {
-            if (IsValidIP(ip) && IsValidIP(ip2) && ip.Substring(0, length).Equals(ip2.Substring(0, length)))
+            if (Math.Abs(ip.Length - ip2.Length) > 3)
+                return false;
+            else if (IsValidIP(ip) && IsValidIP(ip2) && ip.Substring(0, length).Equals(ip2.Substring(0, length)))
                 return true;
             else
                 return false;

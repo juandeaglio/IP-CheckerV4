@@ -88,6 +88,14 @@ namespace IPCheckerNUnitTest
             Assert.IsTrue(VPN_Stability_Monitor.VerifyVPNIP());
         }
         [Test]
+        public void ShouldVerifyVPNIP2()
+        {
+            VPN_Stability_Monitor.mi.HomeIP = "47.144.17.23";
+            VPN_Stability_Monitor.mi.VPNIP = "";
+            IPMonitor.currentIP = "172.54.43.22";
+            Assert.IsTrue(VPN_Stability_Monitor.VerifyVPNIP());
+        }
+        [Test]
         public void ShouldVerifyHomeIP()
         {
             VPN_Stability_Monitor.mi.HomeIP = "47.144.17.23";
@@ -96,12 +104,36 @@ namespace IPCheckerNUnitTest
             Assert.IsTrue(VPN_Stability_Monitor.VerifyHomeIP());
         }
         [Test]
+        public void ShouldVerifyHomeIP2()
+        {
+            VPN_Stability_Monitor.mi.HomeIP = "";
+            VPN_Stability_Monitor.mi.VPNIP = "192.168.0.112";
+            IPMonitor.currentIP = "172.54.43.22";
+            Assert.IsTrue(VPN_Stability_Monitor.VerifyHomeIP());
+        }
+        [Test]
         public void ShouldNotVerifyHomeIP()
         {
             VPN_Stability_Monitor.mi.HomeIP = "34.343.232.12";
             VPN_Stability_Monitor.mi.VPNIP = "192.168.0.112";
-            IPMonitor.currentIP = "65.65.65.65";
+            IPMonitor.currentIP = "4343.3434343.4343.4343.";
             Assert.IsFalse(VPN_Stability_Monitor.VerifyHomeIP());
+        }
+        [Test]
+        public void ShouldNotVerifyVPNIP()
+        {
+            VPN_Stability_Monitor.mi.HomeIP = "34.343.232.12";
+            VPN_Stability_Monitor.mi.VPNIP = "192.168.0.112";
+            IPMonitor.currentIP = "4343.3434343.4343.4343.";
+            Assert.IsFalse(VPN_Stability_Monitor.VerifyVPNIP());
+        }
+        [Test]
+        public void ShouldNotVerifyVPNIP2()
+        {
+            VPN_Stability_Monitor.mi.HomeIP = "34.343.232.12";
+            VPN_Stability_Monitor.mi.VPNIP = "192.168.0.112";
+            IPMonitor.currentIP = "172.245.212.22";
+            Assert.IsFalse(VPN_Stability_Monitor.VerifyVPNIP());
         }
     }
 }
