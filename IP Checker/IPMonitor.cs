@@ -137,7 +137,6 @@ namespace IP_Checker
             ParallelOptions parOpts = new ParallelOptions();
             parOpts.CancellationToken = cancelToken.Token;
             parOpts.MaxDegreeOfParallelism = websites.Count < Environment.ProcessorCount ? websites.Count : Environment.ProcessorCount;
-            string temp = null;
             bool written = false;
             try
             {

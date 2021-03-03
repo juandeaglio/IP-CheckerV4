@@ -29,8 +29,6 @@ namespace IP_Checker
         public static MonitorInformation mi;
         static VPN_Stability_Monitor()
         {
-            //reads HomeIP from previous uses, reads VPNIP from previous uses
-            // else it gets both on its own.
             SessionInformationStorage sis = new SessionInformationStorage();
             try
             {
@@ -38,7 +36,6 @@ namespace IP_Checker
             }
             catch
             {
-                //File DNE or corrupted.
                 mi = new MonitorInformation();
             }
         }
@@ -51,7 +48,7 @@ namespace IP_Checker
                 thresholdReached = false;
             totalWarnings = value;
         }
-        static void VPNStabilityCheck()
+        static void IncrementThresholdIfUnstable()
         {
             if (IPMonitor.currentIP != null)
             {
@@ -66,53 +63,67 @@ namespace IP_Checker
         }
         public static void Run()
         {
-            //TODO: Check for torrent application whether its active or not and shutdown if on home IP at the same time.
-            Stability = "Unknown, VPN inactive.";
-            UpdateStabilityAction(Stability);
             while (true)
             {
-                //Check if we're getting a good IP.
-                if (IsValidIP(IPMonitor.currentIP))
-                {
-                    //Now let's see whether we are have our home IP (all is normal).
-                    if (VerifyHomeIP())
-                    {
-                        //Now let's see whether we have our VPN IP (VPN is active, all is normal).
-                        if (VerifyVPNIP())
-                        {
-                            //Should remain the same... I think it's ready to go (Now about to check for stability issues.)
-                            if (VerifyVPNIP())
-                            {
-                                //Stability check, functionality for shutting down if it's not normal.
-                                while (true)
-                                {
-                                    VPNStabilityCheck();
-                                    if (totalWarnings > threshold)
-                                        shutdown = true;
-                                    Thread.Sleep(500);
-                                }
-                                //It broke!
-                            }
-                            Console.WriteLine("Aaah!");
-                        }
-                        else
-                        {
-                            Stability = $"HomeIP is active {mi.HomeIP}, VPNIP is NOT active. {mi.VPNIP}";
-                            UpdateStabilityAction(Stability);
-                        }
-                        Thread.Sleep(1000);
-                    }
-                    else
-                    {
-                        Stability = "Unknown, HomeIP is unknown.";
-                        UpdateStabilityAction(Stability);
-                    }
-                }
-                else
-                    Stability = "Unknown, internet connection is offline.";
+                UpdateStability();
+                VerifyStability();
                 UpdateStabilityAction(Stability);
             }
         }
+
+        public static bool VerifyStability()
+        {
+            if(IsStillActive())
+            {
+                return true;
+            }
+            return false;
+        }
+
+        private static void UpdateStability()
+        {
+            if (IsValidIP(IPMonitor.currentIP))
+            {
+                if (VerifyHomeIP())
+                {
+                    if (VerifyVPNIP())
+                    {
+                        if (VerifyVPNIP())
+                        {
+                            while (IsStillActive())
+                                Thread.Sleep(500);
+                        }
+                        Console.WriteLine("Aaah!");
+                    }
+                    else
+                    {
+                        Stability = $"HomeIP is active {mi.HomeIP}, VPNIP is NOT active. {mi.VPNIP}";
+                        UpdateStabilityAction(Stability);
+                    }
+                    Thread.Sleep(1000);
+                }
+                else
+                {
+                    Stability = "Unknown, HomeIP is unknown.";
+                    UpdateStabilityAction(Stability);
+                }
+            }
+            Stability = "Unknown, internet connection is offline.";
+
+
+        }
+
+        private static bool IsStillActive()
+        {
+            IncrementThresholdIfUnstable(); //needs renaming.
+            if (totalWarnings > threshold)
+            {
+                shutdown = true;
+                return false;
+            }
+            return true;
+        }
+
         public static bool VerifyHomeIP()
         {
             if (IsSimilarTo(IPMonitor.currentIP, mi.VPNIP, 9) && !IsSimilarTo(mi.HomeIP, mi.VPNIP, 9))

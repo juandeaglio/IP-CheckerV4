@@ -1,5 +1,7 @@
 using IP_Checker;
 using NUnit.Framework;
+using System.Threading;
+
 namespace IPCheckerNUnitTest
 {
     public class IPMonitorTests
@@ -79,6 +81,16 @@ namespace IPCheckerNUnitTest
         {
             VPN_Stability_Monitor.mi.HomeIP = "";
             VPN_Stability_Monitor.mi.VPNIP = "";
+            VPN_Stability_Monitor.UpdateStabilityAction += (websites) => { };
+        }
+        [Test]
+        public void ShouldHaveStableVPN()
+        {
+            new Thread(() =>
+            {
+                VPN_Stability_Monitor.Run();
+            }).Start();
+            Assert.IsTrue(VPN_Stability_Monitor.VerifyStability());
         }
         [Test]
         public void ShouldVerifyVPNIP()
@@ -105,6 +117,14 @@ namespace IPCheckerNUnitTest
             Assert.IsTrue(VPN_Stability_Monitor.VerifyHomeIP());
         }
         [Test]
+        public void ShouldNotVerifyHomeIP()
+        {
+            VPN_Stability_Monitor.mi.HomeIP = "34.343.232.12";
+            VPN_Stability_Monitor.mi.VPNIP = "192.168.0.112";
+            IPMonitor.currentIP = "4343.3434343.4343.4343.";
+            Assert.IsFalse(VPN_Stability_Monitor.VerifyHomeIP());
+        }
+        [Test]
         public void ShouldVerifyHomeIP2()
         {
             VPN_Stability_Monitor.mi.HomeIP = "";
@@ -113,11 +133,11 @@ namespace IPCheckerNUnitTest
             Assert.IsTrue(VPN_Stability_Monitor.VerifyHomeIP());
         }
         [Test]
-        public void ShouldNotVerifyHomeIP()
+        public void ShouldNotVerifyHomeIP3()
         {
             VPN_Stability_Monitor.mi.HomeIP = "34.343.232.12";
             VPN_Stability_Monitor.mi.VPNIP = "192.168.0.112";
-            IPMonitor.currentIP = "4343.3434343.4343.4343.";
+            IPMonitor.currentIP = "NE.43./4]fdez";
             Assert.IsFalse(VPN_Stability_Monitor.VerifyHomeIP());
         }
         [Test]
@@ -134,6 +154,14 @@ namespace IPCheckerNUnitTest
             VPN_Stability_Monitor.mi.HomeIP = "34.343.232.12";
             VPN_Stability_Monitor.mi.VPNIP = "192.168.0.112";
             IPMonitor.currentIP = "172.245.212.22";
+            Assert.IsFalse(VPN_Stability_Monitor.VerifyVPNIP());
+        }
+        [Test]
+        public void ShouldNotVerifyVPNIP3()
+        {
+            VPN_Stability_Monitor.mi.HomeIP = "34.343.232.12";
+            VPN_Stability_Monitor.mi.VPNIP = "192.168.0.112";
+            IPMonitor.currentIP = "NE.43./4]fdez";
             Assert.IsFalse(VPN_Stability_Monitor.VerifyVPNIP());
         }
     }
