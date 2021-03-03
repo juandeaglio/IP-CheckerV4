@@ -43,7 +43,6 @@ namespace IP_Checker
                 UpdateIPFieldAction?.Invoke(currentStatus);
             else
                 UpdateIPFieldAction?.Invoke("No internet or 0 websites listed.");
-            Thread.Sleep(1000);
         }
         public static bool TryFetchIP()
         {
@@ -62,13 +61,10 @@ namespace IP_Checker
                 }
                 return true;
             }
-            //TODO: Check for internet outage on delegate counter. Shuts down after a certain limit. Logs shutdown.
-            else
-            {
-                currentIP = "";
-                UpdateIPField(currentIP);
-                return false;
-            }
+            currentIP = "";
+            UpdateIPField(currentIP);
+            return false;
+
         }
         public static void CheckIP()
         {
@@ -77,6 +73,7 @@ namespace IP_Checker
                 if (websites.Count > 0)
                 {
                     TryFetchIP();
+                    Thread.Sleep(100);
                 }
                 else
                 {
@@ -107,10 +104,8 @@ namespace IP_Checker
         }
         public static bool IsConnectionActive()
         {
-            //TODO: Refactor code so that websites with actual IP returns are prioritized. 
             websiteStr = null;
             bool error = false;
-            Thread.Sleep(2000);
             lock (websites)
             {
                 if (websites.Count > 1)

@@ -51,7 +51,6 @@ namespace IPCheckerNUnitTest
         [Test]
         public void ShouldHaveConnectionTrue()
         {
-
             IPMonitor.AddWebsite(WEBSITE1);
             Assert.IsTrue(IPMonitor.IsConnectionActive());
         }
@@ -64,7 +63,8 @@ namespace IPCheckerNUnitTest
             }
             return true;
         }
-        [Test]
+
+        [Test, Timeout(100)]
         public void ShouldFetchIP()
         {
             IPMonitor.AddWebsite(WEBSITE1);
