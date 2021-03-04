@@ -119,7 +119,7 @@ namespace IP_Checker
                     cancelToken.Cancel();
                     cancelToken = new CancellationTokenSource();
                 }
-                else
+                else if(websites.Count == 1)
                     TryWebsite(websites.First());
             }
             CurrentWebsite = websiteStr;

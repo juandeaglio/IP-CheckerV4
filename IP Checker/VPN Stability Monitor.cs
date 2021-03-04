@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Diagnostics;
+using System.IO;
 using System.Text.RegularExpressions;
 using System.Threading;
 
@@ -27,6 +28,7 @@ namespace IP_Checker
         public static bool test = false;
         public static bool shutdown = false;
         public static MonitorInformation mi;
+        public static bool active = true;
         static VPN_Stability_Monitor()
         {
             SessionInformationStorage sis = new SessionInformationStorage();
@@ -63,7 +65,7 @@ namespace IP_Checker
         }
         public static void Run()
         {
-            while (true)
+            while (active)
             {
                 UpdateStability();
                 VerifyStability();
@@ -150,7 +152,14 @@ namespace IP_Checker
                 {
                     mi.HomeIP = IPMonitor.currentIP;
                     SessionInformationStorage sis = new SessionInformationStorage();
-                    sis.Serialize(mi, FILENAME);
+                    try
+                    {
+                        sis.Serialize(mi, FILENAME);
+                    }
+                    catch (IOException e)
+                    {
+                        Console.WriteLine("Was unable to access file: " + e.Message);
+                    }
                     return true;
                 }
                 else
@@ -177,7 +186,14 @@ namespace IP_Checker
             {
                 mi.VPNIP = IPMonitor.currentIP;
                 SessionInformationStorage sis = new SessionInformationStorage();
-                sis.Serialize(mi, FILENAME);
+                try
+                {
+                    sis.Serialize(mi, FILENAME);
+                }
+                catch (IOException e)
+                {
+                    Console.WriteLine("Failed to access file: " + e.Message);
+                }
                 return true;
             }
             else
@@ -186,7 +202,14 @@ namespace IP_Checker
                 {
                     mi.VPNIP = IPMonitor.currentIP;
                     SessionInformationStorage sis = new SessionInformationStorage();
-                    sis.Serialize(mi, FILENAME);
+                    try
+                    {
+                        sis.Serialize(mi, FILENAME);
+                    }
+                    catch(IOException e)
+                    {
+                        Console.WriteLine("Failed to access file: " + e.Message);
+                    }
                     return true;
                 }
                 else

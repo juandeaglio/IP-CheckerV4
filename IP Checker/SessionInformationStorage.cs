@@ -27,6 +27,11 @@ namespace IP_Checker
                 Console.WriteLine("Failed to serialize. Reason: " + e.Message);
                 throw;
             }
+            catch (IOException e)
+            {
+                Console.WriteLine("Failed to access file: " + e.Message);
+                throw;
+            }
             finally
             {
                 fs.Close();
@@ -50,6 +55,11 @@ namespace IP_Checker
             catch (SerializationException e)
             {
                 Console.WriteLine("Failed to deserialize. Reason: " + e.Message);
+                throw;
+            }
+            catch(IOException e)
+            {
+                Console.WriteLine("Failed to access file: " + e.Message);
                 throw;
             }
             finally

@@ -82,15 +82,23 @@ namespace IPCheckerNUnitTest
             VPN_Stability_Monitor.mi.HomeIP = "";
             VPN_Stability_Monitor.mi.VPNIP = "";
             VPN_Stability_Monitor.UpdateStabilityAction += (websites) => { };
+            VPN_Stability_Monitor.active = true;
+        }
+        [TearDown]
+        public void Teardown()
+        {
+            VPN_Stability_Monitor.active = false;
         }
         [Test]
         public void ShouldHaveStableVPN()
         {
-            new Thread(() =>
-            {
-                VPN_Stability_Monitor.Run();
-            }).Start();
+            Thread run = new Thread(() =>
+             {
+                 VPN_Stability_Monitor.Run();
+             });
+            run.Start();
             Assert.IsTrue(VPN_Stability_Monitor.VerifyStability());
+            VPN_Stability_Monitor.active = false;
         }
         [Test]
         public void ShouldVerifyVPNIP()
