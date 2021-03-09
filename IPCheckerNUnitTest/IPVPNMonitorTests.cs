@@ -4,7 +4,7 @@ using System.Threading;
 
 namespace IPCheckerNUnitTest
 {
-    public class IPMonitorTests
+    public class IPVPNMonitorTests
     {
         public const string WEBSITE1 = "http://icanhazip.com";
         public const string WEBSITE2 = "http://checkip.dyndns.org/";
