@@ -48,17 +48,9 @@ namespace IP_Checker
         {
             if (websites.Count() != 0)
             {
-                TimedWebClient wc = new TimedWebClient();
-                wc.DownloadStringCompleted += new DownloadStringCompletedEventHandler(wc_DownloadStringCompleted);
-                wc.DownloadStringAsync(new Uri(CurrentWebsite));
-                void wc_DownloadStringCompleted(object sender, DownloadStringCompletedEventArgs e)
-                {
-                    string regexPattern = @"\d*\.\d*\.\d*\.\d*";
-                    Regex rgx = new Regex(regexPattern);
-                    currentIP = rgx.Match(e.Result).Value;
-                    currentIPField = currentIP + " using " + CurrentWebsite;
-                    UpdateIPField(currentIPField);
-                }
+                HttpDownload(CurrentWebsite);
+                currentIPField = currentIP + " using " + CurrentWebsite;
+                UpdateIPField(currentIPField);
                 return true;
             }
             else
@@ -69,6 +61,23 @@ namespace IP_Checker
             }
 
         }
+
+        private static void HttpDownload(string website)
+        {
+            if (website.Length > 0)
+            {
+                TimedWebClient wc = new TimedWebClient();
+                wc.DownloadStringCompleted += new DownloadStringCompletedEventHandler(wc_DownloadStringCompleted);
+                wc.DownloadStringAsync(new Uri(website));
+                void wc_DownloadStringCompleted(object sender, DownloadStringCompletedEventArgs e)
+                {
+                    string regexPattern = @"\d*\.\d*\.\d*\.\d*";
+                    Regex rgx = new Regex(regexPattern);
+                    currentIP = rgx.Match(e.Result).Value;
+                }
+            }
+        }
+
         public static void CheckIPAndUpdate()
         {
             while (true)
@@ -86,13 +95,14 @@ namespace IP_Checker
                 }
             }
         }
-        static bool TryWebsite(string website)
+        static bool TryWebsite(string website, ref bool error)
         {
             try
             {
                 using (var client = new TimedWebClient())
                 using (client.OpenRead(website))
                 websiteStr = website;
+                error = false;
                 return true;
             }
             catch (WebException ex)
@@ -109,7 +119,7 @@ namespace IP_Checker
         public static bool IsConnectionActive()
         {
             websiteStr = null;
-            bool error = false;
+            bool error = true;
             lock (websites)
             {
                 if (websites.Count > 1)
@@ -120,7 +130,7 @@ namespace IP_Checker
                     cancelToken = new CancellationTokenSource();
                 }
                 else if(websites.Count == 1)
-                    TryWebsite(websites.First());
+                    TryWebsite(websites.First(), ref error);
             }
             CurrentWebsite = websiteStr;
             return !error;
@@ -137,20 +147,21 @@ namespace IP_Checker
             ParallelOptions parOpts = new ParallelOptions();
             parOpts.CancellationToken = cancelToken.Token;
             parOpts.MaxDegreeOfParallelism = websites.Count < Environment.ProcessorCount ? websites.Count : Environment.ProcessorCount;
+            error = false;
             bool written = false;
             try
             {
-                Parallel.ForEach(websites, (currentWebsite) =>
+                bool temp = false;
+                Parallel.ForEach(websites, parOpts, (currentWebsite) =>
                 {
-                    if(TryWebsite(currentWebsite))
+                    TryWebsite(currentWebsite, ref temp);
+                    if(!written)
                     {
-                        if (!written)
-                        {
-                            websiteStr = currentWebsite;
-                        }
+                        websiteStr = currentWebsite;
+                        written = true;
                     }
-                }
-                );
+                });
+                error = error || temp;
             }
             catch (OperationCanceledException ex)
             {

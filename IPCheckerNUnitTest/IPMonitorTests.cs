@@ -42,19 +42,10 @@ namespace IPCheckerNUnitTest
             Assert.AreEqual(IPMonitor.websites.Count, 1);
         }
         [Test]
-        public void ShouldAddThreeWebsites()
+        public void ShouldNotHaveConnection()
         {
-            IPMonitor.AddWebsite(WEBSITE1);
-            IPMonitor.AddWebsite(WEBSITE2);
-            IPMonitor.AddWebsite(WEBSITE3);
-            Assert.IsTrue(WebsitesAreNotEmpty(IPMonitor.websites));
-            Assert.AreEqual(IPMonitor.websites.Count, 3);
-        }
-        [Test]
-        public void ShouldHaveConnectionTrue()
-        {
-            IPMonitor.AddWebsite(WEBSITE1);
-            Assert.IsTrue(IPMonitor.IsConnectionActive());
+            IPMonitor.AddWebsite("Ht:/dwewe");
+            Assert.IsFalse(IPMonitor.IsConnectionActive());
         }
         public bool WebsitesAreNotEmpty(WebsiteHashSet websites)
         {
@@ -66,12 +57,10 @@ namespace IPCheckerNUnitTest
             return true;
         }
 
-        [Test, Timeout(100)]
-        public void ShouldFetchIP()
+        [Test]
+        public void ShouldNotFetchIPWhenWebsitesEmpty()
         {
-            IPMonitor.AddWebsite(WEBSITE1);
-            Assert.IsTrue(IPMonitor.IsConnectionActive());
-            Assert.IsTrue(IPMonitor.TryFetchIP());
+            Assert.IsFalse(IPMonitor.TryFetchIP());
         }
     }
     public class VPNStabilityTests
