@@ -44,12 +44,12 @@ namespace IP_Checker
             else
                 UpdateIPFieldAction?.Invoke("No internet or 0 websites listed.");
         }
-        public static bool TryFetchIP()
+        public static bool TryFetchIP(string website)
         {
-            if (websites.Count() != 0)
+            if (!website.Equals(""))
             {
-                HttpDownload(CurrentWebsite);
-                currentIPField = currentIP + " using " + CurrentWebsite;
+                HttpDownload(website);
+                currentIPField = currentIP + " using " + website;
                 UpdateIPField(currentIPField);
                 return true;
             }
@@ -67,15 +67,16 @@ namespace IP_Checker
             if (website.Length > 0)
             {
                 TimedWebClient wc = new TimedWebClient();
-                wc.DownloadStringCompleted += new DownloadStringCompletedEventHandler(wc_DownloadStringCompleted);
+                wc.DownloadStringCompleted += new DownloadStringCompletedEventHandler(FormatHTMLToIPString);
                 wc.DownloadStringAsync(new Uri(website));
-                void wc_DownloadStringCompleted(object sender, DownloadStringCompletedEventArgs e)
-                {
-                    string regexPattern = @"\d*\.\d*\.\d*\.\d*";
-                    Regex rgx = new Regex(regexPattern);
-                    currentIP = rgx.Match(e.Result).Value;
-                }
             }
+        }
+
+        public static void FormatHTMLToIPString(object sender, DownloadStringCompletedEventArgs e)
+        {
+            string regexPattern = @"\d*\.\d*\.\d*\.\d*";
+            Regex rgx = new Regex(regexPattern);
+            currentIP = rgx.Match(e.Result).Value;
         }
 
         public static void CheckIPAndUpdate()
@@ -84,8 +85,7 @@ namespace IP_Checker
             {
                 if (IsConnectionActive())
                 {
-
-                    TryFetchIP();
+                    TryFetchIP(CurrentWebsite);
                     Thread.Sleep(100);
                 }
                 else

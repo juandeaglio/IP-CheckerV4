@@ -56,11 +56,10 @@ namespace IPCheckerNUnitTest
             }
             return true;
         }
-
         [Test]
         public void ShouldNotFetchIPWhenWebsitesEmpty()
         {
-            Assert.IsFalse(IPMonitor.TryFetchIP());
+            Assert.IsFalse(IPMonitor.TryFetchIP(""));
         }
     }
     public class VPNStabilityTests
