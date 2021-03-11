@@ -65,12 +65,14 @@ namespace IP_Checker
         }
         public static void Run()
         {
+            do { UpdateStabilityAction(Stability); } while (!AwaitSuccessfulVPNStart());
+            active = true;
             while (active)
             {
-                UpdateStability();
-                VerifyStability();
-                UpdateStabilityAction(Stability);
+                active = VerifyStability();
             }
+            UpdateStabilityAction(Stability);
+            shutdown = true;
         }
 
         public static bool VerifyStability()
@@ -82,48 +84,39 @@ namespace IP_Checker
             return false;
         }
 
-        private static void UpdateStability()
+        private static bool AwaitSuccessfulVPNStart()
         {
+            bool result = false;
             if (IsValidIP(IPMonitor.currentIP))
-            {
                 if (VerifyHomeIP())
                 {
                     if (VerifyVPNIP())
                     {
                         if (VerifyVPNIP())
-                        {
-                            while (IsStillActive())
-                                Thread.Sleep(500);
-                        }
-                        Console.WriteLine("Aaah!");
+                            return true;
                     }
                     else
                     {
                         Stability = $"HomeIP is active {mi.HomeIP}, VPNIP is NOT active. {mi.VPNIP}";
-                        UpdateStabilityAction(Stability);
                     }
-                    Thread.Sleep(1000);
                 }
                 else
                 {
                     Stability = "Unknown, HomeIP is unknown.";
-                    UpdateStabilityAction(Stability);
                 }
-            }
-            Stability = "Unknown, internet connection is offline.";
+            else
+                Stability = "Unknown, internet connection is offline.";
 
-
+            return result;
         }
 
         private static bool IsStillActive()
         {
             IncrementThresholdIfUnstable(); //needs renaming.
             if (totalWarnings > threshold)
-            {
-                shutdown = true;
                 return false;
-            }
-            return true;
+            else
+                return true;
         }
 
         public static bool VerifyHomeIP()
