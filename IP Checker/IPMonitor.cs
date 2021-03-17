@@ -12,7 +12,7 @@ namespace IP_Checker
     public static class IPMonitor
     {
         public static string Title { get; set; } = "IP Checka";
-        public static WebsiteHashSet websites;
+        private static HashSet<string> websites;
         public static string currentIP;
         public static string currentIPField;
         private static string websiteStr;
@@ -22,9 +22,16 @@ namespace IP_Checker
         private static string testWebsite = "";
         static IPMonitor()
         {
-            websites = new WebsiteHashSet();
+            SetWebsites(new WebsiteHashSet());
         }
-
+        public static HashSet<string> GetWebsites()
+        {
+            return websites;
+        }
+        public static void SetWebsites(HashSet<string> newWebsites)
+        {
+            websites = newWebsites;
+        }
         public static void Run()
         {
             Task.Factory.StartNew(CheckIPAndUpdate);
@@ -185,22 +192,5 @@ namespace IP_Checker
         //Delegates are simple and defined by MainWindow.
         public static Action<string> UpdateIPFieldAction;
         public static Action<HashSet<string>> UpdateWebsitesAction;
-        public static void AddWebsite(string websiteFieldText)
-        {
-            try
-            {
-                using (var client = new TimedWebClient())
-                    client.OpenRead(websiteFieldText);
-                websites.Add(websiteFieldText);
-            }
-            catch (WebException ex)
-            {
-                //TODO: Logging incorrect website added or unreachable website. GUI feedback if incorrect.
-            }
-        }
-        public static void RemoveWebsite(string websiteFieldText)
-        {
-            websites.Remove(websiteFieldText);
-        }
     }
 }

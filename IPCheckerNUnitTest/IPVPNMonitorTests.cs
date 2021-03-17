@@ -1,54 +1,51 @@
 using IP_Checker;
 using NUnit.Framework;
+using System.Collections.Generic;
 using System.Threading;
 
 namespace IPCheckerNUnitTest
 {
-    public class IPVPNMonitorTests
+    public class IPVPNMonitorUnitTests
     {
         public const string WEBSITE1 = "http://icanhazip.com";
         public const string WEBSITE2 = "http://checkip.dyndns.org/";
         private const string WEBSITE3 = "http://ifconfig.me/ip";
-        [TearDown]
-        public void TearDown()
-        {
-            IPMonitor.websites.Clear();
-        }
         [SetUp]
         public void Setup()
         {
             IPMonitor.UpdateWebsitesAction += (websites) => { };
+            IPMonitor.SetWebsites(new HashSet<string>());
         }
-        //TODO: Change the add/remove website tests such that they do not interact w/ WebClient, but instead throufgh 
+        //TODO: Change the add/remove website tests such that they do not interact w/ WebClient, but instead through some stub.
         [Test]
         public void ShouldAddWebsite()
         {
-            IPMonitor.AddWebsite(WEBSITE1);
-            Assert.IsTrue(WebsitesAreNotEmpty(IPMonitor.websites));
-            Assert.GreaterOrEqual(IPMonitor.websites.Count, 1);
+            IPMonitor.GetWebsites().Add(WEBSITE1);
+            Assert.IsTrue(WebsitesAreNotEmpty(IPMonitor.GetWebsites()));
+            Assert.GreaterOrEqual(IPMonitor.GetWebsites().Count, 1);
         }
         [Test]
         public void ShouldRemoveWebsite()
         {
-            IPMonitor.AddWebsite(WEBSITE1);
-            Assert.Greater(IPMonitor.websites.Count, 0);
-            IPMonitor.RemoveWebsite(WEBSITE1);
-            Assert.AreEqual(0, IPMonitor.websites.Count);
+            IPMonitor.GetWebsites().Add(WEBSITE1);
+            Assert.Greater(IPMonitor.GetWebsites().Count, 0);
+            IPMonitor.GetWebsites().Remove(WEBSITE1);
+            Assert.AreEqual(0, IPMonitor.GetWebsites().Count);
         }
         [Test]
         public void ShouldAddDuplicateWebsite()
         {
-            IPMonitor.AddWebsite(WEBSITE1);
-            IPMonitor.AddWebsite(WEBSITE1);
-            Assert.AreEqual(IPMonitor.websites.Count, 1);
+            IPMonitor.GetWebsites().Add(WEBSITE1);
+            IPMonitor.GetWebsites().Add(WEBSITE1);
+            Assert.AreEqual(IPMonitor.GetWebsites().Count, 1);
         }
         [Test]
         public void ShouldNotHaveConnection()
         {
-            IPMonitor.AddWebsite("Ht:/dwewe");
+            IPMonitor.GetWebsites().Add("Ht:/dwewe");
             Assert.IsFalse(IPMonitor.IsConnectionActive());
         }
-        public bool WebsitesAreNotEmpty(WebsiteHashSet websites)
+        public bool WebsitesAreNotEmpty(HashSet<string> websites)
         {
             foreach (string website in websites)
             {

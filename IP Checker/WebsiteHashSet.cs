@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using System.Net;
 
 namespace IP_Checker
 {
@@ -9,14 +10,24 @@ namespace IP_Checker
         }
         public new void Add(string websiteFieldText)
         {
-            if (!base.Contains(websiteFieldText))
+            try
             {
-                lock (this)
+                using (var client = new TimedWebClient())
+                    client.OpenRead(websiteFieldText);
+                if (!base.Contains(websiteFieldText))
                 {
-                    base.Add(websiteFieldText);
+                    lock (this)
+                    {
+                        base.Add(websiteFieldText);
+                    }
+                    IPMonitor.UpdateWebsitesAction(this);
                 }
-                IPMonitor.UpdateWebsitesAction(this);
             }
+            catch (WebException ex)
+            {
+                //TODO: Logging incorrect website added or unreachable website. GUI feedback if incorrect.
+            }
+
         }
         public new void Remove(string websiteFieldText)
         {
