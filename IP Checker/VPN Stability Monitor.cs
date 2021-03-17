@@ -58,21 +58,20 @@ namespace IP_Checker
                     SetShutdownThresholdCounter(0);
                 else if (IPMonitor.currentIP.Equals(mi.HomeIP) || !IsSimilarTo(IPMonitor.currentIP, mi.VPNIP, 3))
                     SetShutdownThresholdCounter(totalWarnings + 1);
-
                 Stability = thresholdReached ? $"Connection unstable after {totalWarnings} tries." : $"VPN active {mi.VPNIP}, connection stable. Home IP: {mi.HomeIP}";
-                UpdateStabilityAction(Stability);
             }
         }
         public static void Run()
         {
             do { UpdateStabilityAction(Stability); } while (!AwaitSuccessfulVPNStart());
             active = true;
+            UpdateStabilityAction(Stability);
             while (active)
             {
                 active = VerifyStability();
+                UpdateStabilityAction(Stability);
             }
-            UpdateStabilityAction(Stability);
-            shutdown = true;
+            //shutdown = true;
         }
 
         public static bool VerifyStability()

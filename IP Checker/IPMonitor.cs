@@ -20,8 +20,6 @@ namespace IP_Checker
         private static string CurrentWebsite { get; set; } = "";
         private static CancellationTokenSource cancelToken = new CancellationTokenSource();
         private static string testWebsite = "";
-        //TODO: Future plans of timer
-        //private static TimerCallback timerCB;
         static IPMonitor()
         {
             websites = new WebsiteHashSet();
@@ -124,10 +122,19 @@ namespace IP_Checker
             {
                 if (websites.Count > 1)
                 {
-                    new Thread(() => ParallelTryWebsite(ref error)).Start();
-                    WaitForWebsiteToChange();
-                    cancelToken.Cancel();
-                    cancelToken = new CancellationTokenSource();
+                    if (CurrentWebsite != null)
+                    {
+                        if (CurrentWebsite.Equals(""))
+                        {
+                            new Thread(() => ParallelTryWebsite(ref error)).Start();
+                            WaitForWebsiteToChange();
+                            cancelToken.Cancel();
+                            cancelToken = new CancellationTokenSource();
+                        }
+                        else
+                            TryWebsite(CurrentWebsite, ref error);
+                    }
+                    
                 }
                 else if(websites.Count == 1)
                     TryWebsite(websites.First(), ref error);
