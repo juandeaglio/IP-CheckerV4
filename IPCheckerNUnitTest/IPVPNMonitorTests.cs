@@ -54,7 +54,6 @@ namespace IPCheckerNUnitTest
         [TearDown]
         public void Teardown()
         {
-            vpnMonitor.active = false;
         }
         [Test]
         public void ShouldHaveStableVPN()
@@ -65,7 +64,6 @@ namespace IPCheckerNUnitTest
              });
             run.Start();
             Assert.IsTrue(vpnMonitor.VerifyStability());
-            vpnMonitor.active = false;
         }
         [Test]
         public void ShouldVerifyVPNIP()
