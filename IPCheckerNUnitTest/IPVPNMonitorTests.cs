@@ -16,33 +16,11 @@ namespace IPCheckerNUnitTest
             IPMonitor.UpdateWebsitesAction += (websites) => { };
             IPMonitor.SetWebsites(new HashSet<string>());
         }
-        //TODO: Change the add/remove website tests such that they do not interact w/ WebClient, but instead through some stub.
+
         [Test]
-        public void ShouldAddWebsite()
+        public void GivenAnInvalidWebsiteShouldNotHaveConnection()
         {
-            IPMonitor.GetWebsites().Add(WEBSITE1);
-            Assert.IsTrue(WebsitesAreNotEmpty(IPMonitor.GetWebsites()));
-            Assert.GreaterOrEqual(IPMonitor.GetWebsites().Count, 1);
-        }
-        [Test]
-        public void ShouldRemoveWebsite()
-        {
-            IPMonitor.GetWebsites().Add(WEBSITE1);
-            Assert.Greater(IPMonitor.GetWebsites().Count, 0);
-            IPMonitor.GetWebsites().Remove(WEBSITE1);
-            Assert.AreEqual(0, IPMonitor.GetWebsites().Count);
-        }
-        [Test]
-        public void ShouldAddDuplicateWebsite()
-        {
-            IPMonitor.GetWebsites().Add(WEBSITE1);
-            IPMonitor.GetWebsites().Add(WEBSITE1);
-            Assert.AreEqual(IPMonitor.GetWebsites().Count, 1);
-        }
-        [Test]
-        public void ShouldNotHaveConnection()
-        {
-            IPMonitor.GetWebsites().Add("Ht:/dwewe");
+            IPMonitor.AddWebsite("Ht:/dwewe");
             Assert.IsFalse(IPMonitor.IsConnectionActive());
         }
         public bool WebsitesAreNotEmpty(HashSet<string> websites)
@@ -55,7 +33,7 @@ namespace IPCheckerNUnitTest
             return true;
         }
         [Test]
-        public void ShouldNotFetchIPWhenWebsitesEmpty()
+        public void GivenWebsitesIsEmptyShouldNotFetchIP()
         {
             Assert.IsFalse(IPMonitor.TryFetchIP(""));
         }
