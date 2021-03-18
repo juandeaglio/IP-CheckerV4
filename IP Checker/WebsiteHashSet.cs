@@ -3,24 +3,21 @@ using System.Net;
 
 namespace IP_Checker
 {
-    public class WebsiteHashSet : HashSet<string>
+    public static class HashSetWebsiteHelper
     {
-        public WebsiteHashSet() : base()
-        {
-        }
-        public new void Add(string websiteFieldText)
+        public static void Add(string websiteFieldText, ref HashSet<string> websiteSet)
         {
             try
             {
                 using (var client = new TimedWebClient())
                     client.OpenRead(websiteFieldText);
-                if (!base.Contains(websiteFieldText))
+                if (!websiteSet.Contains(websiteFieldText))
                 {
-                    lock (this)
+                    lock (websiteSet)
                     {
-                        base.Add(websiteFieldText);
+                        websiteSet.Add(websiteFieldText);
                     }
-                    IPMonitor.UpdateWebsitesAction(this);
+                    IPMonitor.UpdateWebsitesAction(websiteSet);
                 }
             }
             catch (WebException ex)
@@ -29,15 +26,15 @@ namespace IP_Checker
             }
 
         }
-        public new void Remove(string websiteFieldText)
+        public static void Remove(string websiteFieldText, ref HashSet<string> websiteSet)
         {
-            if (base.Contains(websiteFieldText))
+            if (websiteSet.Contains(websiteFieldText))
             {
-                lock (this)
+                lock (websiteSet)
                 {
-                    base.Remove(websiteFieldText);
+                    websiteSet.Remove(websiteFieldText);
                 }
-                IPMonitor.UpdateWebsitesAction(this);
+                IPMonitor.UpdateWebsitesAction(websiteSet);
             }
         }
     }

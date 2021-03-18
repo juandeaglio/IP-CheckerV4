@@ -12,7 +12,7 @@ namespace IP_Checker
     public static class IPMonitor
     {
         public static string Title { get; set; } = "IP Checka";
-        private static HashSet<string> websites;
+        private static HashSet<string> websiteSet;
         public static string currentIP;
         public static string currentIPField;
         private static string websiteStr;
@@ -22,15 +22,16 @@ namespace IP_Checker
         private static string testWebsite = "";
         static IPMonitor()
         {
-            SetWebsites(new WebsiteHashSet());
+            SetWebsites(new HashSet<string>());
+            CurrentWebsite = "";
         }
         public static HashSet<string> GetWebsites()
         {
-            return websites;
+            return websiteSet;
         }
         public static void SetWebsites(HashSet<string> newWebsites)
         {
-            websites = newWebsites;
+            websiteSet = newWebsites;
         }
         public static void Run()
         {
@@ -125,26 +126,22 @@ namespace IP_Checker
         {
             websiteStr = null;
             bool error = true;
-            lock (websites)
+            lock (websiteSet)
             {
-                if (websites.Count > 1)
+                if (websiteSet.Count > 1)
                 {
-                    if (CurrentWebsite != null)
+                    if (CurrentWebsite == null || CurrentWebsite.Equals(""))
                     {
-                        if (CurrentWebsite.Equals(""))
-                        {
-                            new Thread(() => ParallelTryWebsite(ref error)).Start();
-                            WaitForWebsiteToChange();
-                            cancelToken.Cancel();
-                            cancelToken = new CancellationTokenSource();
-                        }
-                        else
-                            TryWebsite(CurrentWebsite, ref error);
+                        new Thread(() => ParallelTryWebsite(ref error)).Start();
+                        WaitForWebsiteToChange();
+                        cancelToken.Cancel();
+                        cancelToken = new CancellationTokenSource();
                     }
-                    
+                    else
+                        TryWebsite(CurrentWebsite, ref error);
                 }
-                else if(websites.Count == 1)
-                    TryWebsite(websites.First(), ref error);
+                else if(websiteSet.Count == 1)
+                    TryWebsite(websiteSet.First(), ref error);
             }
             CurrentWebsite = websiteStr;
             return !error;
@@ -160,13 +157,13 @@ namespace IP_Checker
         {
             ParallelOptions parOpts = new ParallelOptions();
             parOpts.CancellationToken = cancelToken.Token;
-            parOpts.MaxDegreeOfParallelism = websites.Count < Environment.ProcessorCount ? websites.Count : Environment.ProcessorCount;
+            parOpts.MaxDegreeOfParallelism = websiteSet.Count < Environment.ProcessorCount ? websiteSet.Count : Environment.ProcessorCount;
             error = false;
             bool written = false;
             try
             {
                 bool temp = false;
-                Parallel.ForEach(websites, parOpts, (currentWebsite) =>
+                Parallel.ForEach(websiteSet, parOpts, (currentWebsite) =>
                 {
                     TryWebsite(currentWebsite, ref temp);
                     if(!written)
@@ -188,7 +185,14 @@ namespace IP_Checker
             }
 
         }
-
+        public static void AddWebsite(string name)
+        {
+            HashSetWebsiteHelper.Add(name, ref websiteSet);
+        }
+        public static void RemoveWebsite(string name)
+        {
+            HashSetWebsiteHelper.Remove(name, ref websiteSet);
+        }
         //Delegates are simple and defined by MainWindow.
         public static Action<string> UpdateIPFieldAction;
         public static Action<HashSet<string>> UpdateWebsitesAction;

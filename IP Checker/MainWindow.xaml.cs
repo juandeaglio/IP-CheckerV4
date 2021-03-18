@@ -38,9 +38,9 @@ namespace IP_Checker
                     }
                 }
             );
-            this.Dispatcher.Invoke(() => IPMonitor.GetWebsites().Add(WEBSITE1));
-            this.Dispatcher.Invoke(() => IPMonitor.GetWebsites().Add(WEBSITE2));
-            this.Dispatcher.Invoke(() => IPMonitor.GetWebsites().Add(WEBSITE3));
+            this.Dispatcher.Invoke(() => IPMonitor.AddWebsite(WEBSITE1));
+            this.Dispatcher.Invoke(() => IPMonitor.AddWebsite(WEBSITE2));
+            this.Dispatcher.Invoke(() => IPMonitor.AddWebsite(WEBSITE3));
         }
         public void InitializeTextFields()
         {
@@ -53,14 +53,14 @@ namespace IP_Checker
         {
             if (!Website_Field.Text.Equals(""))
             {
-                this.Dispatcher.Invoke(() => IPMonitor.GetWebsites().Add(Website_Field.Text));
+                this.Dispatcher.Invoke(() => IPMonitor.AddWebsite(Website_Field.Text));
             }
         }
         private void Remove_Click(object sender, RoutedEventArgs e)
         {
             if (!Website_Field.Text.Equals(""))
             {
-                this.Dispatcher.Invoke(() => IPMonitor.GetWebsites().Remove(Website_Field.Text));
+                this.Dispatcher.Invoke(() => IPMonitor.RemoveWebsite(Website_Field.Text));
             }
         }
         public void CallWhenWebsitesChanged(HashSet<string> websites)
