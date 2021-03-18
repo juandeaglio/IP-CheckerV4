@@ -5,26 +5,30 @@ namespace IP_Checker
 {
     public static class HashSetWebsiteHelper
     {
-        public static void Add(string websiteFieldText, ref HashSet<string> websiteSet)
+        public static void AddIfValid(string websiteFieldText, ref HashSet<string> websiteSet, WebClient client)
+        {
+            if (!websiteSet.Contains(websiteFieldText) && IsWebsiteActive(websiteFieldText, client))
+            {
+                lock (websiteSet)
+                {
+                    websiteSet.Add(websiteFieldText);
+                }
+            }
+        }
+
+        private static bool IsWebsiteActive(string websiteFieldText, WebClient client)
         {
             try
             {
-                using (var client = new TimedWebClient())
-                    client.OpenRead(websiteFieldText);
-                if (!websiteSet.Contains(websiteFieldText))
-                {
-                    lock (websiteSet)
-                    {
-                        websiteSet.Add(websiteFieldText);
-                    }
-                }
+                client.OpenRead(websiteFieldText);
+                return true;
             }
             catch (WebException ex)
             {
-                //TODO: Logging incorrect website added or unreachable website. GUI feedback if incorrect.
+                return false;
             }
-
         }
+
         public static void Remove(string websiteFieldText, ref HashSet<string> websiteSet)
         {
             if (websiteSet.Contains(websiteFieldText))

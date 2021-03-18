@@ -29,7 +29,7 @@ namespace IP_Checker
         }
         public virtual void Add(string name)
         {
-            HashSetWebsiteHelper.Add(name, ref websiteSet);
+            HashSetWebsiteHelper.AddIfValid(name, ref websiteSet, new TimedWebClient());
         }
         public virtual void Remove(string name)
         {

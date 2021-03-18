@@ -5,6 +5,20 @@ using System.Threading;
 
 namespace IPCheckerNUnitTest
 {
+    public class TestWebsiteTester : WebsiteTester
+    {
+
+        public TestWebsiteTester(HashSet<string> set) : base(set)
+        {
+
+        }
+        public override void Add(string name)
+        {
+            HashSet<string> set = base.GetWebsiteSet();
+            if (!base.GetWebsiteSet().Contains(name))
+                set.Add(name);
+        }
+    }
     public class IPVPNMonitorUnitTests
     {
         public const string WEBSITE1 = "http://icanhazip.com";
@@ -12,10 +26,11 @@ namespace IPCheckerNUnitTest
         private const string WEBSITE3 = "http://ifconfig.me/ip";
         public WebsiteTester websiteTester;
         public IPMonitor ipMonitor;
+
         [SetUp]
         public void Setup()
         {
-            websiteTester = new WebsiteTester(new HashSet<string>());
+            websiteTester = new TestWebsiteTester(new HashSet<string>());
             ipMonitor = new IPMonitor(websiteTester);
             ipMonitor.UpdateWebsitesAction += (websites) => { };
             ipMonitor.UpdateIPFieldAction += (temp) => { };
