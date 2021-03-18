@@ -15,20 +15,23 @@ namespace IP_Checker
         public const string WEBSITE1 = "http://icanhazip.com";
         public const string WEBSITE2 = "http://checkip.dyndns.org/";
         private const string WEBSITE3 = "http://ifconfig.me/ip";
+        private IPMonitor ipMonitor;
+        private VPN_Stability_Monitor vpnMonitor;
         public MainWindow()
         {
+            ipMonitor = new IPMonitor();
+            vpnMonitor = new VPN_Stability_Monitor(ipMonitor);
             InitializeComponent();
             InitializeTextFields();
-            //TODO: Implement IP/VPN logic.
-            Task.Factory.StartNew(() => IPMonitor.Run());
-            Task.Factory.StartNew(() => VPN_Stability_Monitor.Run());
+            Task.Factory.StartNew(() => ipMonitor.Run());
+            Task.Factory.StartNew(() => vpnMonitor.Run());
 
             //Shutdown app when called for (can be replaced with system shutdown)
             Task.Factory.StartNew(() =>
                 {
                     while (true)
                     {
-                        if (VPN_Stability_Monitor.shutdown)
+                        if (vpnMonitor.shutdown)
                         {
                             Application curApp = Application.Current;
                             //curApp.Dispatcher.Invoke(curApp.Shutdown);
@@ -38,29 +41,29 @@ namespace IP_Checker
                     }
                 }
             );
-            this.Dispatcher.Invoke(() => IPMonitor.AddWebsite(WEBSITE1));
-            this.Dispatcher.Invoke(() => IPMonitor.AddWebsite(WEBSITE2));
-            this.Dispatcher.Invoke(() => IPMonitor.AddWebsite(WEBSITE3));
+            this.Dispatcher.Invoke(() => ipMonitor.AddWebsite(WEBSITE1));
+            this.Dispatcher.Invoke(() => ipMonitor.AddWebsite(WEBSITE2));
+            this.Dispatcher.Invoke(() => ipMonitor.AddWebsite(WEBSITE3));
         }
         public void InitializeTextFields()
         {
             //Quick delegate assignment for website/IP changes.
-            IPMonitor.UpdateIPFieldAction = CallWhenIPChanges;
-            IPMonitor.UpdateWebsitesAction = CallWhenWebsitesChanged;
-            VPN_Stability_Monitor.UpdateStabilityAction = CallWhenStabilityChanges;
+            ipMonitor.UpdateIPFieldAction = CallWhenIPChanges;
+            ipMonitor.UpdateWebsitesAction = CallWhenWebsitesChanged;
+            vpnMonitor.UpdateStabilityAction = CallWhenStabilityChanges;
         }
         private void Add_Click(object sender, RoutedEventArgs e)
         {
             if (!Website_Field.Text.Equals(""))
             {
-                this.Dispatcher.Invoke(() => IPMonitor.AddWebsite(Website_Field.Text));
+                this.Dispatcher.Invoke(() => ipMonitor.AddWebsite(Website_Field.Text));
             }
         }
         private void Remove_Click(object sender, RoutedEventArgs e)
         {
             if (!Website_Field.Text.Equals(""))
             {
-                this.Dispatcher.Invoke(() => IPMonitor.RemoveWebsite(Website_Field.Text));
+                this.Dispatcher.Invoke(() => ipMonitor.RemoveWebsite(Website_Field.Text));
             }
         }
         public void CallWhenWebsitesChanged(HashSet<string> websites)

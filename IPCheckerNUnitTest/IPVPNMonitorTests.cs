@@ -10,115 +10,117 @@ namespace IPCheckerNUnitTest
         public const string WEBSITE1 = "http://icanhazip.com";
         public const string WEBSITE2 = "http://checkip.dyndns.org/";
         private const string WEBSITE3 = "http://ifconfig.me/ip";
+        public IPMonitor ipMonitor;
         [SetUp]
         public void Setup()
         {
-            IPMonitor.UpdateWebsitesAction += (websites) => { };
-            IPMonitor.SetWebsites(new HashSet<string>());
+            ipMonitor = new IPMonitor();
+            ipMonitor.UpdateWebsitesAction += (websites) => { };
+            string temp;
+            ipMonitor.UpdateIPFieldAction += (temp) => { };
         }
 
         [Test]
         public void GivenAnInvalidWebsiteShouldNotHaveConnection()
         {
-            IPMonitor.AddWebsite("Ht:/dwewe");
-            Assert.IsFalse(IPMonitor.IsConnectionActive());
-        }
-        public bool WebsitesAreNotEmpty(HashSet<string> websites)
-        {
-            foreach (string website in websites)
-            {
-                if (string.IsNullOrEmpty(website))
-                    return false;
-            }
-            return true;
+            ipMonitor.AddWebsite("Ht:/dwewe");
+            Assert.IsFalse(ipMonitor.IsConnectionActive());
         }
         [Test]
         public void GivenWebsitesIsEmptyShouldNotFetchIP()
         {
-            Assert.IsFalse(IPMonitor.TryFetchIP(""));
+            Assert.IsFalse(ipMonitor.TryFetchIP(""));
         }
     }
     public class VPNStabilityTests
     {
+        public IPMonitor ipMonitor;
+        public VPN_Stability_Monitor vpnMonitor;
         [SetUp]
         public void Setup()
         {
-            VPN_Stability_Monitor.mi.HomeIP = "47.144.17.23";
-            VPN_Stability_Monitor.mi.VPNIP = "192.168.0.112";
-            IPMonitor.currentIP = "192.168.0.812";
-            VPN_Stability_Monitor.UpdateStabilityAction += (websites) => { };
-            VPN_Stability_Monitor.active = true;
+            ipMonitor = new IPMonitor();
+            ipMonitor.UpdateWebsitesAction += (websites) => { };
+            string temp;
+            ipMonitor.UpdateIPFieldAction += (temp) => { };
+            ipMonitor.SetWebsites(new HashSet<string>());
+            vpnMonitor = new VPN_Stability_Monitor(ipMonitor);
+            vpnMonitor.mi.HomeIP = "47.144.17.23";
+            vpnMonitor.mi.VPNIP = "192.168.0.112";
+            ipMonitor.currentIP = "192.168.0.812";
+            vpnMonitor.UpdateStabilityAction += (websites) => { };
+            vpnMonitor.active = true;
         }
         [TearDown]
         public void Teardown()
         {
-            VPN_Stability_Monitor.active = false;
+            vpnMonitor.active = false;
         }
         [Test]
         public void ShouldHaveStableVPN()
         {
             Thread run = new Thread(() =>
              {
-                 VPN_Stability_Monitor.Run();
+                 vpnMonitor.Run();
              });
             run.Start();
-            Assert.IsTrue(VPN_Stability_Monitor.VerifyStability());
-            VPN_Stability_Monitor.active = false;
+            Assert.IsTrue(vpnMonitor.VerifyStability());
+            vpnMonitor.active = false;
         }
         [Test]
         public void ShouldVerifyVPNIP()
         {
-            Assert.IsTrue(VPN_Stability_Monitor.VerifyVPNIP());
+            Assert.IsTrue(vpnMonitor.VerifyVPNIP());
         }
         [Test]
         public void ShouldVerifyVPNIP2()
         {
-            VPN_Stability_Monitor.mi.VPNIP = "";
-            IPMonitor.currentIP = "172.54.43.22";
-            Assert.IsTrue(VPN_Stability_Monitor.VerifyVPNIP());
+            vpnMonitor.mi.VPNIP = "";
+            ipMonitor.currentIP = "172.54.43.22";
+            Assert.IsTrue(vpnMonitor.VerifyVPNIP());
         }
         [Test]
         public void ShouldVerifyHomeIP()
         {
-            IPMonitor.currentIP = "47.144.17.23";
-            Assert.IsTrue(VPN_Stability_Monitor.VerifyHomeIP());
+            ipMonitor.currentIP = "47.144.17.23";
+            Assert.IsTrue(vpnMonitor.VerifyHomeIP());
         }
         [Test]
         public void ShouldNotVerifyHomeIP()
         {
-            IPMonitor.currentIP = "4343.3434343.4343.4343.";
-            Assert.IsFalse(VPN_Stability_Monitor.VerifyHomeIP());
+            ipMonitor.currentIP = "4343.3434343.4343.4343.";
+            Assert.IsFalse(vpnMonitor.VerifyHomeIP());
         }
         [Test]
         public void ShouldVerifyHomeIP2()
         {
-            VPN_Stability_Monitor.mi.HomeIP = "";
-            IPMonitor.currentIP = "172.54.43.22";
-            Assert.IsTrue(VPN_Stability_Monitor.VerifyHomeIP());
+            vpnMonitor.mi.HomeIP = "";
+            ipMonitor.currentIP = "172.54.43.22";
+            Assert.IsTrue(vpnMonitor.VerifyHomeIP());
         }
         [Test]
         public void ShouldNotVerifyHomeIP3()
         {
-            IPMonitor.currentIP = "NE.43./4]fdez";
-            Assert.IsFalse(VPN_Stability_Monitor.VerifyHomeIP());
+            ipMonitor.currentIP = "NE.43./4]fdez";
+            Assert.IsFalse(vpnMonitor.VerifyHomeIP());
         }
         [Test]
         public void ShouldNotVerifyVPNIP()
         {
-            IPMonitor.currentIP = "4343.3434343.4343.4343.";
-            Assert.IsFalse(VPN_Stability_Monitor.VerifyVPNIP());
+            ipMonitor.currentIP = "4343.3434343.4343.4343.";
+            Assert.IsFalse(vpnMonitor.VerifyVPNIP());
         }
         [Test]
         public void ShouldNotVerifyVPNIP2()
         {
-            IPMonitor.currentIP = "172.245.212.22";
-            Assert.IsFalse(VPN_Stability_Monitor.VerifyVPNIP());
+            ipMonitor.currentIP = "172.245.212.22";
+            Assert.IsFalse(vpnMonitor.VerifyVPNIP());
         }
         [Test]
         public void ShouldNotVerifyVPNIP3()
         {
-            IPMonitor.currentIP = "NE.43./4]fdez";
-            Assert.IsFalse(VPN_Stability_Monitor.VerifyVPNIP());
+            ipMonitor.currentIP = "NE.43./4]fdez";
+            Assert.IsFalse(vpnMonitor.VerifyVPNIP());
         }
     }
 }

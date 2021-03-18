@@ -18,30 +18,32 @@ namespace IP_Checker
         public string VPNIP;
     }
 
-    public static class VPN_Stability_Monitor
+    public  class VPN_Stability_Monitor
     {
-        static string FILENAME = "IPFile.dat";
-        private static int totalWarnings;
-        private static int threshold = 5;
-        private static bool thresholdReached = false;
-        private static string Stability { get; set; }
-        public static bool test = false;
-        public static bool shutdown = false;
-        public static MonitorInformation mi;
-        public static bool active = true;
-        static VPN_Stability_Monitor()
+        string FILENAME = "IPFile.dat";
+        private int totalWarnings;
+        private int threshold = 5;
+        private  bool thresholdReached = false;
+        private string Stability { get; set; }
+        public bool test = false;
+        public bool shutdown = false;
+        public MonitorInformation mi;
+        public bool active = true;
+        public IPMonitor ipMonitor;
+        public VPN_Stability_Monitor(IPMonitor ipMon)
         {
             SessionInformationStorage sis = new SessionInformationStorage();
             try
             {
-                mi = sis.Deserialize(FILENAME);
+                mi = sis.Deserialize(FILENAME, this);
+                ipMonitor = ipMon;
             }
             catch
             {
                 mi = new MonitorInformation();
             }
         }
-        private static void SetShutdownThresholdCounter(int value)
+        private  void SetShutdownThresholdCounter(int value)
         {
             //Do something if thresholdReached.
             if (totalWarnings > threshold)
@@ -50,18 +52,18 @@ namespace IP_Checker
                 thresholdReached = false;
             totalWarnings = value;
         }
-        static void IncrementThresholdIfUnstable()
+         void IncrementThresholdIfUnstable()
         {
-            if (IPMonitor.currentIP != null)
+            if (ipMonitor.currentIP != null)
             {
-                if (IsValidIP(IPMonitor.currentIP) && IsSimilarTo(IPMonitor.currentIP, mi.VPNIP, 3))
+                if (IsValidIP(ipMonitor.currentIP) && IsSimilarTo(ipMonitor.currentIP, mi.VPNIP, 3))
                     SetShutdownThresholdCounter(0);
-                else if (IPMonitor.currentIP.Equals(mi.HomeIP) || !IsSimilarTo(IPMonitor.currentIP, mi.VPNIP, 3))
+                else if (ipMonitor.currentIP.Equals(mi.HomeIP) || !IsSimilarTo(ipMonitor.currentIP, mi.VPNIP, 3))
                     SetShutdownThresholdCounter(totalWarnings + 1);
                 Stability = thresholdReached ? $"Connection unstable after {totalWarnings} tries." : $"VPN active {mi.VPNIP}, connection stable. Home IP: {mi.HomeIP}";
             }
         }
-        public static void Run()
+        public  void Run()
         {
             do { UpdateStabilityAction(Stability); } while (!AwaitSuccessfulVPNStart());
             active = true;
@@ -74,7 +76,7 @@ namespace IP_Checker
             //shutdown = true;
         }
 
-        public static bool VerifyStability()
+        public  bool VerifyStability()
         {
             if(IsStillActive())
             {
@@ -83,10 +85,10 @@ namespace IP_Checker
             return false;
         }
 
-        private static bool AwaitSuccessfulVPNStart()
+        private  bool AwaitSuccessfulVPNStart()
         {
             bool result = false;
-            if (IsValidIP(IPMonitor.currentIP))
+            if (IsValidIP(ipMonitor.currentIP))
                 if (VerifyHomeIP())
                 {
                     if (VerifyVPNIP())
@@ -109,7 +111,7 @@ namespace IP_Checker
             return result;
         }
 
-        private static bool IsStillActive()
+        private  bool IsStillActive()
         {
             IncrementThresholdIfUnstable(); //needs renaming.
             if (totalWarnings > threshold)
@@ -118,19 +120,19 @@ namespace IP_Checker
                 return true;
         }
 
-        public static bool VerifyHomeIP()
+        public  bool VerifyHomeIP()
         {
-            if (IsSimilarTo(IPMonitor.currentIP, mi.VPNIP, 9) && !IsSimilarTo(mi.HomeIP, mi.VPNIP, 9))
+            if (IsSimilarTo(ipMonitor.currentIP, mi.VPNIP, 9) && !IsSimilarTo(mi.HomeIP, mi.VPNIP, 9))
                 return true;
             else if (IsValidIP(mi.HomeIP))
             {
-                if (IPMonitor.currentIP.Equals(mi.HomeIP))
+                if (ipMonitor.currentIP.Equals(mi.HomeIP))
                     return true;
                 else
                 {
-                    if (IsSimilarTo(mi.HomeIP, IPMonitor.currentIP, 9))
+                    if (IsSimilarTo(mi.HomeIP, ipMonitor.currentIP, 9))
                     {
-                        mi.HomeIP = IPMonitor.currentIP;
+                        mi.HomeIP = ipMonitor.currentIP;
                         SessionInformationStorage sis = new SessionInformationStorage();
                         sis.Serialize(mi, FILENAME);
                         return true;
@@ -140,9 +142,9 @@ namespace IP_Checker
             }
             else
             {
-                if (IsValidIP(IPMonitor.currentIP))
+                if (IsValidIP(ipMonitor.currentIP))
                 {
-                    mi.HomeIP = IPMonitor.currentIP;
+                    mi.HomeIP = ipMonitor.currentIP;
                     SessionInformationStorage sis = new SessionInformationStorage();
                     try
                     {
@@ -158,7 +160,7 @@ namespace IP_Checker
                     return false;
             }
         }
-        public static bool VerifyVPNIP()
+        public  bool VerifyVPNIP()
         {
             if (IsValidIP(mi.VPNIP))
             {
@@ -167,16 +169,16 @@ namespace IP_Checker
                     mi.VPNIP = "";
                     return false;
                 }
-                else if (IsSimilarTo(IPMonitor.currentIP, mi.VPNIP, 3))
+                else if (IsSimilarTo(ipMonitor.currentIP, mi.VPNIP, 3))
                 {
                     return true;
                 }
                 else
                     return false;
             }
-            else if (!IPMonitor.currentIP.Equals(mi.HomeIP) && IsValidIP(IPMonitor.currentIP))
+            else if (!ipMonitor.currentIP.Equals(mi.HomeIP) && IsValidIP(ipMonitor.currentIP))
             {
-                mi.VPNIP = IPMonitor.currentIP;
+                mi.VPNIP = ipMonitor.currentIP;
                 SessionInformationStorage sis = new SessionInformationStorage();
                 try
                 {
@@ -190,9 +192,9 @@ namespace IP_Checker
             }
             else
             {
-                if (!IsSimilarTo(IPMonitor.currentIP, mi.HomeIP, 9))
+                if (!IsSimilarTo(ipMonitor.currentIP, mi.HomeIP, 9))
                 {
-                    mi.VPNIP = IPMonitor.currentIP;
+                    mi.VPNIP = ipMonitor.currentIP;
                     SessionInformationStorage sis = new SessionInformationStorage();
                     try
                     {
@@ -208,14 +210,14 @@ namespace IP_Checker
                     return false;
             }
         }
-        public static bool IsValidIP(string ip)
+        public  bool IsValidIP(string ip)
         {
             if (ip != null && !ip.Equals("") && Regex.IsMatch(ip, @"\d*\.\d*\.\d*\.\d*"))
                 return true;
             else
                 return false;
         }
-        public static bool IsSimilarTo(string ip, string ip2, int length)
+        public  bool IsSimilarTo(string ip, string ip2, int length)
         {
             if (Math.Abs(ip.Length - ip2.Length) > 3)
                 return false;
@@ -224,7 +226,7 @@ namespace IP_Checker
             else
                 return false;
         }
-        public static bool VPNIsActive()
+        public  bool VPNIsActive()
         {
             Process[] processArr;
             processArr = Process.GetProcessesByName("ExpressVPN");
@@ -235,6 +237,6 @@ namespace IP_Checker
                 return true;
             return false;
         }
-        public static Action<string> UpdateStabilityAction;
+        public  Action<string> UpdateStabilityAction;
     }
 }

@@ -37,7 +37,7 @@ namespace IP_Checker
                 fs.Close();
             }
         }
-        public MonitorInformation Deserialize(string fileName)
+        public MonitorInformation Deserialize(string fileName, VPN_Stability_Monitor vpnMonitor)
         {
             // Declare the hashtable reference.
             MonitorInformation mi;
@@ -71,11 +71,11 @@ namespace IP_Checker
             // display the key/value pairs.
             try
             {
-                if (VPN_Stability_Monitor.IsValidIP(mi.HomeIP))
+                if (vpnMonitor.IsValidIP(mi.HomeIP))
                     Console.WriteLine(mi.HomeIP);
                 else
                     Console.WriteLine("Uh-oh!");
-                if (VPN_Stability_Monitor.IsValidIP(mi.VPNIP))
+                if (vpnMonitor.IsValidIP(mi.VPNIP))
                     Console.WriteLine(mi.VPNIP);
                 else
                     Console.WriteLine("Uh-oh!");

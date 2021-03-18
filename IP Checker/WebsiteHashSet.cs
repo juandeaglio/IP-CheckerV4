@@ -17,7 +17,6 @@ namespace IP_Checker
                     {
                         websiteSet.Add(websiteFieldText);
                     }
-                    IPMonitor.UpdateWebsitesAction(websiteSet);
                 }
             }
             catch (WebException ex)
@@ -34,7 +33,6 @@ namespace IP_Checker
                 {
                     websiteSet.Remove(websiteFieldText);
                 }
-                IPMonitor.UpdateWebsitesAction(websiteSet);
             }
         }
     }

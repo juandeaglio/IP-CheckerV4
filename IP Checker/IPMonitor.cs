@@ -9,31 +9,36 @@ using System.Net.Sockets;
 
 namespace IP_Checker
 {
-    public static class IPMonitor
+    public class IPMonitor
     {
-        public static string Title { get; set; } = "IP Checka";
-        private static HashSet<string> websiteSet;
-        public static string currentIP;
-        public static string currentIPField;
-        private static string websiteStr;
+        public string Title { get; set; } = "IP Checka";
+        private HashSet<string> websiteSet;
+        public string currentIP;
+        public string currentIPField;
+        private string websiteStr;
         //public static bool stop = false;
-        private static string CurrentWebsite { get; set; } = "";
-        private static CancellationTokenSource cancelToken = new CancellationTokenSource();
-        private static string testWebsite = "";
-        static IPMonitor()
+        private string CurrentWebsite { get; set; } = "";
+        private CancellationTokenSource cancelToken = new CancellationTokenSource();
+        private string testWebsite = "";
+        public IPMonitor()
         {
             SetWebsites(new HashSet<string>());
             CurrentWebsite = "";
         }
-        public static HashSet<string> GetWebsites()
+        public IPMonitor(HashSet<string> websites)
+        {
+            SetWebsites(websites);
+            CurrentWebsite = "";
+        }
+        public HashSet<string> GetWebsites()
         {
             return websiteSet;
         }
-        public static void SetWebsites(HashSet<string> newWebsites)
+        public void SetWebsites(HashSet<string> newWebsites)
         {
             websiteSet = newWebsites;
         }
-        public static void Run()
+        public void Run()
         {
             Task.Factory.StartNew(CheckIPAndUpdate);
             new Thread(() =>
@@ -43,14 +48,14 @@ namespace IP_Checker
                 SynchronousSocketListener.StartListening(currentIP);
             }).Start();
         }
-        private static void UpdateIPField(string currentStatus)
+        private void UpdateIPField(string currentStatus)
         {
             if(!currentStatus.Equals(""))
                 UpdateIPFieldAction?.Invoke(currentStatus);
             else
                 UpdateIPFieldAction?.Invoke("No internet or 0 websites listed.");
         }
-        public static bool TryFetchIP(string website)
+        public bool TryFetchIP(string website)
         {
             if (!website.Equals(""))
             {
@@ -68,7 +73,7 @@ namespace IP_Checker
 
         }
 
-        private static void HttpDownload(string website)
+        private void HttpDownload(string website)
         {
             if (website.Length > 0)
             {
@@ -78,14 +83,14 @@ namespace IP_Checker
             }
         }
 
-        public static void FormatHTMLToIPString(object sender, DownloadStringCompletedEventArgs e)
+        public void FormatHTMLToIPString(object sender, DownloadStringCompletedEventArgs e)
         {
             string regexPattern = @"\d*\.\d*\.\d*\.\d*";
             Regex rgx = new Regex(regexPattern);
             currentIP = rgx.Match(e.Result).Value;
         }
 
-        public static void CheckIPAndUpdate()
+        public void CheckIPAndUpdate()
         {
             while (true)
             {
@@ -101,7 +106,7 @@ namespace IP_Checker
                 }
             }
         }
-        static bool TryWebsite(string website, ref bool error)
+        bool TryWebsite(string website, ref bool error)
         {
             try
             {
@@ -122,7 +127,7 @@ namespace IP_Checker
             }
             return false;
         }
-        public static bool IsConnectionActive()
+        public bool IsConnectionActive()
         {
             websiteStr = null;
             bool error = true;
@@ -147,13 +152,13 @@ namespace IP_Checker
             return !error;
         }
 
-        private static void WaitForWebsiteToChange()
+        private void WaitForWebsiteToChange()
         {
             while (websiteStr == null)
             { }
         }
 
-        private static void ParallelTryWebsite(ref bool error)
+        private void ParallelTryWebsite(ref bool error)
         {
             ParallelOptions parOpts = new ParallelOptions();
             parOpts.CancellationToken = cancelToken.Token;
@@ -185,16 +190,18 @@ namespace IP_Checker
             }
 
         }
-        public static void AddWebsite(string name)
+        public void AddWebsite(string name)
         {
             HashSetWebsiteHelper.Add(name, ref websiteSet);
+            UpdateWebsitesAction(websiteSet);
         }
-        public static void RemoveWebsite(string name)
+        public void RemoveWebsite(string name)
         {
             HashSetWebsiteHelper.Remove(name, ref websiteSet);
+            UpdateWebsitesAction(websiteSet);
         }
         //Delegates are simple and defined by MainWindow.
-        public static Action<string> UpdateIPFieldAction;
-        public static Action<HashSet<string>> UpdateWebsitesAction;
+        public Action<string> UpdateIPFieldAction;
+        public Action<HashSet<string>> UpdateWebsitesAction;
     }
 }
