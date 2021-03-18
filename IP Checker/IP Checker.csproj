@@ -81,7 +81,8 @@
     <Compile Include="TimedWebClient.cs">
       <SubType>Component</SubType>
     </Compile>
-    <Compile Include="WebsiteHashSet.cs" />
+    <Compile Include="HashSetWebsiteHelper.cs" />
+    <Compile Include="WebsiteTester.cs" />
     <Page Include="MainWindow.xaml">
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>

@@ -10,13 +10,14 @@ namespace IPCheckerNUnitTest
         public const string WEBSITE1 = "http://icanhazip.com";
         public const string WEBSITE2 = "http://checkip.dyndns.org/";
         private const string WEBSITE3 = "http://ifconfig.me/ip";
+        public WebsiteTester websiteTester;
         public IPMonitor ipMonitor;
         [SetUp]
         public void Setup()
         {
-            ipMonitor = new IPMonitor();
+            websiteTester = new WebsiteTester(new HashSet<string>());
+            ipMonitor = new IPMonitor(websiteTester);
             ipMonitor.UpdateWebsitesAction += (websites) => { };
-            string temp;
             ipMonitor.UpdateIPFieldAction += (temp) => { };
         }
 
@@ -31,15 +32,40 @@ namespace IPCheckerNUnitTest
         {
             Assert.IsFalse(ipMonitor.TryFetchIP(""));
         }
+        [Test]
+        public void ShouldAddOneWebsite()
+        {
+            int sizeOfSet = ipMonitor.GetWebsites().Count;
+            ipMonitor.AddWebsite(WEBSITE3);
+            Assert.AreEqual(sizeOfSet + 1, ipMonitor.GetWebsites().Count);
+        }
+        [Test]
+        public void ShouldAddOneWebsiteThenAddDuplicateWebsite()
+        {
+            int sizeOfSet = ipMonitor.GetWebsites().Count;
+            ipMonitor.AddWebsite(WEBSITE3);
+            ipMonitor.AddWebsite(WEBSITE3);
+            Assert.AreEqual(sizeOfSet + 1, ipMonitor.GetWebsites().Count);
+        }
+        [Test]
+        public void GivenSetWithOneWebsiteShouldDeleteOneWebsite()
+        {
+            int sizeOfSet = ipMonitor.GetWebsites().Count;
+            ipMonitor.AddWebsite(WEBSITE3);
+            ipMonitor.RemoveWebsite(WEBSITE3);
+            Assert.AreEqual(sizeOfSet, ipMonitor.GetWebsites().Count);
+        }
     }
     public class VPNStabilityTests
     {
         public IPMonitor ipMonitor;
+        public WebsiteTester websiteTester;
         public VPN_Stability_Monitor vpnMonitor;
         [SetUp]
         public void Setup()
         {
-            ipMonitor = new IPMonitor();
+            websiteTester = new WebsiteTester(new HashSet<string>());
+            ipMonitor = new IPMonitor(websiteTester);
             ipMonitor.UpdateWebsitesAction += (websites) => { };
             string temp;
             ipMonitor.UpdateIPFieldAction += (temp) => { };
@@ -50,10 +76,6 @@ namespace IPCheckerNUnitTest
             ipMonitor.currentIP = "192.168.0.812";
             vpnMonitor.UpdateStabilityAction += (websites) => { };
             vpnMonitor.active = true;
-        }
-        [TearDown]
-        public void Teardown()
-        {
         }
         [Test]
         public void ShouldHaveStableVPN()

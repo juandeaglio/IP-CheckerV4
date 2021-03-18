@@ -20,8 +20,15 @@ namespace IP_Checker
         private string CurrentWebsite { get; set; } = "";
         private CancellationTokenSource cancelToken = new CancellationTokenSource();
         private string testWebsite = "";
+        private WebsiteTester websiteTester;
         public IPMonitor()
         {
+            SetWebsites(new HashSet<string>());
+            CurrentWebsite = "";
+        }
+        public IPMonitor(WebsiteTester webTester)
+        {
+            websiteTester = webTester;
             SetWebsites(new HashSet<string>());
             CurrentWebsite = "";
         }
@@ -192,12 +199,14 @@ namespace IP_Checker
         }
         public void AddWebsite(string name)
         {
-            HashSetWebsiteHelper.Add(name, ref websiteSet);
+            websiteTester.Add(name);
+            websiteSet = websiteTester.GetWebsiteSet();
             UpdateWebsitesAction(websiteSet);
         }
         public void RemoveWebsite(string name)
         {
-            HashSetWebsiteHelper.Remove(name, ref websiteSet);
+            websiteTester.Remove(name);
+            websiteSet = websiteTester.GetWebsiteSet();
             UpdateWebsitesAction(websiteSet);
         }
         //Delegates are simple and defined by MainWindow.
