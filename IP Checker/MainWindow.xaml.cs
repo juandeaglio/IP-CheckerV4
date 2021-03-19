@@ -17,9 +17,10 @@ namespace IP_Checker
         private const string WEBSITE3 = "http://ifconfig.me/ip";
         private IPMonitor ipMonitor;
         private VPN_Stability_Monitor vpnMonitor;
+
         public MainWindow()
         {
-            ipMonitor = new IPMonitor();
+            ipMonitor = new IPMonitor(new WebsiteTester(new HashSet<string>()));
             vpnMonitor = new VPN_Stability_Monitor(ipMonitor);
             InitializeComponent();
             InitializeTextFields();

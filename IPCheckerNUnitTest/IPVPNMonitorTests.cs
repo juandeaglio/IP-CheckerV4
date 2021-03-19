@@ -35,7 +35,6 @@ namespace IPCheckerNUnitTest
             ipMonitor.UpdateWebsitesAction += (websites) => { };
             ipMonitor.UpdateIPFieldAction += (temp) => { };
         }
-
         [Test]
         public void GivenAnInvalidWebsiteShouldNotHaveConnection()
         {
@@ -71,7 +70,7 @@ namespace IPCheckerNUnitTest
             Assert.AreEqual(sizeOfSet, ipMonitor.GetWebsites().Count);
         }
     }
-    public class VPNStabilityTests
+    public class VPNStabilityUnitTests
     {
         public IPMonitor ipMonitor;
         public WebsiteTester websiteTester;
@@ -156,6 +155,32 @@ namespace IPCheckerNUnitTest
         {
             ipMonitor.currentIP = "NE.43./4]fdez";
             Assert.IsFalse(vpnMonitor.VerifyVPNIP());
+        }
+    }
+    public class IPMonitorComponentTests
+    {
+        public const string WEBSITE1 = "http://icanhazip.com";
+        public const string WEBSITE2 = "http://checkip.dyndns.org/";
+        private const string WEBSITE3 = "http://ifconfig.me/ip";
+
+        public IPMonitor ipMonitor;
+        public WebsiteTester websiteTester;
+        [SetUp]
+        public void Setup()
+        {
+            HashSet<string> websites = new HashSet<string>();
+            WebsiteTester websiteTester = new WebsiteTester(websites);
+            ipMonitor = new IPMonitor(websiteTester);
+            ipMonitor.UpdateWebsitesAction += (websites) => { };
+            string temp;
+            ipMonitor.UpdateIPFieldAction += (temp) => { };
+        }
+        [Test]
+        public void ShouldAddOneValidWebsite()
+        {
+            int amntOfWebsites = ipMonitor.GetWebsites().Count;
+            ipMonitor.AddWebsite(WEBSITE1);
+            Assert.AreEqual(amntOfWebsites+1, ipMonitor.GetWebsites().Count);
         }
     }
 }

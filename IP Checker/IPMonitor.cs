@@ -21,11 +21,6 @@ namespace IP_Checker
         private CancellationTokenSource cancelToken = new CancellationTokenSource();
         private string testWebsite = "";
         private WebsiteTester websiteTester;
-        public IPMonitor()
-        {
-            SetWebsites(new HashSet<string>());
-            CurrentWebsite = "";
-        }
         public IPMonitor(WebsiteTester webTester)
         {
             websiteTester = webTester;
