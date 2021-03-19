@@ -9,13 +9,15 @@ namespace IP_Checker
     [Serializable]
     public struct MonitorInformation
     {
-        public MonitorInformation(string homeIP, string vpnIP)
+        public MonitorInformation(string homeIP, string vpnIP, string currentIP)
         {
             HomeIP = homeIP;
             VPNIP = vpnIP;
+            CurrentIP = currentIP;
         }
         public string HomeIP;
         public string VPNIP;
+        public string CurrentIP;
     }
 
     public  class VPN_Stability_Monitor
@@ -52,13 +54,13 @@ namespace IP_Checker
                 thresholdReached = false;
             totalWarnings = value;
         }
-         void IncrementThresholdIfUnstable()
+         void IncrementThresholdIfUnstable(MonitorInformation mi)
         {
-            if (ipMonitor.currentIP != null)
+            if (mi.CurrentIP != null)
             {
-                if (IsValidIP(ipMonitor.currentIP) && IsSimilarTo(ipMonitor.currentIP, mi.VPNIP, 3))
+                if (IsValidIP(mi.CurrentIP) && IsSimilarTo(mi.CurrentIP, mi.VPNIP, 3))
                     SetShutdownThresholdCounter(0);
-                else if (ipMonitor.currentIP.Equals(mi.HomeIP) || !IsSimilarTo(ipMonitor.currentIP, mi.VPNIP, 3))
+                else if (mi.CurrentIP.Equals(mi.HomeIP) || !IsSimilarTo(mi.CurrentIP, mi.VPNIP, 3))
                     SetShutdownThresholdCounter(totalWarnings + 1);
                 Stability = thresholdReached ? $"Connection unstable after {totalWarnings} tries." : $"VPN active {mi.VPNIP}, connection stable. Home IP: {mi.HomeIP}";
             }
@@ -88,12 +90,13 @@ namespace IP_Checker
         private  bool AwaitSuccessfulVPNStart()
         {
             bool result = false;
-            if (IsValidIP(ipMonitor.currentIP))
-                if (VerifyHomeIP())
+            mi.CurrentIP = ipMonitor.currentIP;
+            if (IsValidIP(mi.CurrentIP))
+                if (VerifyHomeIP(mi))
                 {
-                    if (VerifyVPNIP())
+                    if (VerifyVPNIP(mi))
                     {
-                        if (VerifyVPNIP())
+                        if (VerifyVPNIP(mi))
                             return true;
                     }
                     else
@@ -113,26 +116,27 @@ namespace IP_Checker
 
         private  bool IsStillActive()
         {
-            IncrementThresholdIfUnstable(); //needs renaming.
+            mi.CurrentIP = ipMonitor.currentIP;
+            IncrementThresholdIfUnstable(mi); //needs renaming.
             if (totalWarnings > threshold)
                 return false;
             else
                 return true;
         }
 
-        public  bool VerifyHomeIP()
+        public  bool VerifyHomeIP(MonitorInformation mi)
         {
-            if (IsSimilarTo(ipMonitor.currentIP, mi.VPNIP, 9) && !IsSimilarTo(mi.HomeIP, mi.VPNIP, 9))
+            if (IsSimilarTo(mi.CurrentIP, mi.VPNIP, 9) && !IsSimilarTo(mi.HomeIP, mi.VPNIP, 9))
                 return true;
             else if (IsValidIP(mi.HomeIP))
             {
-                if (ipMonitor.currentIP.Equals(mi.HomeIP))
+                if (mi.CurrentIP.Equals(mi.HomeIP))
                     return true;
                 else
                 {
-                    if (IsSimilarTo(mi.HomeIP, ipMonitor.currentIP, 9))
+                    if (IsSimilarTo(mi.HomeIP, mi.CurrentIP, 9))
                     {
-                        mi.HomeIP = ipMonitor.currentIP;
+                        mi.HomeIP = mi.CurrentIP;
                         SessionInformationStorage sis = new SessionInformationStorage();
                         sis.Serialize(mi, FILENAME);
                         return true;
@@ -142,9 +146,9 @@ namespace IP_Checker
             }
             else
             {
-                if (IsValidIP(ipMonitor.currentIP))
+                if (IsValidIP(mi.CurrentIP))
                 {
-                    mi.HomeIP = ipMonitor.currentIP;
+                    mi.HomeIP = mi.CurrentIP;
                     SessionInformationStorage sis = new SessionInformationStorage();
                     try
                     {
@@ -160,7 +164,7 @@ namespace IP_Checker
                     return false;
             }
         }
-        public  bool VerifyVPNIP()
+        public  bool VerifyVPNIP(MonitorInformation mi)
         {
             if (IsValidIP(mi.VPNIP))
             {
@@ -169,16 +173,16 @@ namespace IP_Checker
                     mi.VPNIP = "";
                     return false;
                 }
-                else if (IsSimilarTo(ipMonitor.currentIP, mi.VPNIP, 3))
+                else if (IsSimilarTo(mi.CurrentIP, mi.VPNIP, 3))
                 {
                     return true;
                 }
                 else
                     return false;
             }
-            else if (!ipMonitor.currentIP.Equals(mi.HomeIP) && IsValidIP(ipMonitor.currentIP))
+            else if (!mi.CurrentIP.Equals(mi.HomeIP) && IsValidIP(mi.CurrentIP))
             {
-                mi.VPNIP = ipMonitor.currentIP;
+                mi.VPNIP = mi.CurrentIP;
                 SessionInformationStorage sis = new SessionInformationStorage();
                 try
                 {
@@ -192,9 +196,9 @@ namespace IP_Checker
             }
             else
             {
-                if (!IsSimilarTo(ipMonitor.currentIP, mi.HomeIP, 9))
+                if (!IsSimilarTo(mi.CurrentIP, mi.HomeIP, 9))
                 {
-                    mi.VPNIP = ipMonitor.currentIP;
+                    mi.VPNIP = mi.CurrentIP;
                     SessionInformationStorage sis = new SessionInformationStorage();
                     try
                     {

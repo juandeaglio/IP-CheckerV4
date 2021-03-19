@@ -75,6 +75,10 @@ namespace IPCheckerNUnitTest
         public IPMonitor ipMonitor;
         public WebsiteTester websiteTester;
         public VPN_Stability_Monitor vpnMonitor;
+        string homeIP;
+        string vpnIP;
+        string currentIP;
+        MonitorInformation mi;
         [SetUp]
         public void Setup()
         {
@@ -85,9 +89,7 @@ namespace IPCheckerNUnitTest
             ipMonitor.UpdateIPFieldAction += (temp) => { };
             ipMonitor.SetWebsites(new HashSet<string>());
             vpnMonitor = new VPN_Stability_Monitor(ipMonitor);
-            vpnMonitor.mi.HomeIP = "47.144.17.23";
-            vpnMonitor.mi.VPNIP = "192.168.0.112";
-            ipMonitor.currentIP = "192.168.0.812";
+            mi = new MonitorInformation("47.144.17.23", "192.168.0.112", "192.168.0.812");
             vpnMonitor.UpdateStabilityAction += (websites) => { };
             vpnMonitor.active = true;
         }
@@ -104,57 +106,57 @@ namespace IPCheckerNUnitTest
         [Test]
         public void ShouldVerifyVPNIP()
         {
-            Assert.IsTrue(vpnMonitor.VerifyVPNIP());
+            Assert.IsTrue(vpnMonitor.VerifyVPNIP(mi));
         }
         [Test]
         public void ShouldVerifyVPNIP2()
         {
-            vpnMonitor.mi.VPNIP = "";
-            ipMonitor.currentIP = "172.54.43.22";
-            Assert.IsTrue(vpnMonitor.VerifyVPNIP());
+            mi.VPNIP = "";
+            mi.CurrentIP = "172.54.43.22";
+            Assert.IsTrue(vpnMonitor.VerifyVPNIP(mi));
         }
         [Test]
         public void ShouldVerifyHomeIP()
         {
-            ipMonitor.currentIP = "47.144.17.23";
-            Assert.IsTrue(vpnMonitor.VerifyHomeIP());
+            mi.CurrentIP = "47.144.17.23";
+            Assert.IsTrue(vpnMonitor.VerifyHomeIP(mi));
         }
         [Test]
         public void ShouldNotVerifyHomeIP()
         {
-            ipMonitor.currentIP = "4343.3434343.4343.4343.";
-            Assert.IsFalse(vpnMonitor.VerifyHomeIP());
+            mi.CurrentIP = "4343.3434343.4343.4343.";
+            Assert.IsFalse(vpnMonitor.VerifyHomeIP(mi));
         }
         [Test]
         public void ShouldVerifyHomeIP2()
         {
-            vpnMonitor.mi.HomeIP = "";
-            ipMonitor.currentIP = "172.54.43.22";
-            Assert.IsTrue(vpnMonitor.VerifyHomeIP());
+            mi.HomeIP = "";
+            mi.CurrentIP = "172.54.43.22";
+            Assert.IsTrue(vpnMonitor.VerifyHomeIP(mi));
         }
         [Test]
         public void ShouldNotVerifyHomeIP3()
         {
-            ipMonitor.currentIP = "NE.43./4]fdez";
-            Assert.IsFalse(vpnMonitor.VerifyHomeIP());
+            mi.CurrentIP = "NE.43./4]fdez";
+            Assert.IsFalse(vpnMonitor.VerifyHomeIP(mi));
         }
         [Test]
         public void ShouldNotVerifyVPNIP()
         {
-            ipMonitor.currentIP = "4343.3434343.4343.4343.";
-            Assert.IsFalse(vpnMonitor.VerifyVPNIP());
+            mi.CurrentIP = "4343.3434343.4343.4343.";
+            Assert.IsFalse(vpnMonitor.VerifyVPNIP(mi));
         }
         [Test]
         public void ShouldNotVerifyVPNIP2()
         {
-            ipMonitor.currentIP = "172.245.212.22";
-            Assert.IsFalse(vpnMonitor.VerifyVPNIP());
+            mi.CurrentIP = "172.245.212.22";
+            Assert.IsFalse(vpnMonitor.VerifyVPNIP(mi));
         }
         [Test]
         public void ShouldNotVerifyVPNIP3()
         {
-            ipMonitor.currentIP = "NE.43./4]fdez";
-            Assert.IsFalse(vpnMonitor.VerifyVPNIP());
+            mi.CurrentIP = "NE.43./4]fdez";
+            Assert.IsFalse(vpnMonitor.VerifyVPNIP(mi));
         }
     }
     public class IPMonitorComponentTests
@@ -181,6 +183,35 @@ namespace IPCheckerNUnitTest
             int amntOfWebsites = ipMonitor.GetWebsites().Count;
             ipMonitor.AddWebsite(WEBSITE1);
             Assert.AreEqual(amntOfWebsites+1, ipMonitor.GetWebsites().Count);
+        }
+        [Test]
+        public void ShouldAddOneValidWebsiteThenTryAddingDuplicateWebsite()
+        {
+            int amntOfWebsites = ipMonitor.GetWebsites().Count;
+            ipMonitor.AddWebsite(WEBSITE1);
+            ipMonitor.AddWebsite(WEBSITE1);
+            Assert.AreEqual(amntOfWebsites + 1, ipMonitor.GetWebsites().Count);
+        }
+        [Test]
+        public void ShouldAddOneValidWebsiteThenRemoveIt()
+        {
+            int amntOfWebsites = ipMonitor.GetWebsites().Count;
+            ipMonitor.AddWebsite(WEBSITE1);
+            ipMonitor.RemoveWebsite(WEBSITE1);
+            Assert.AreEqual(amntOfWebsites, ipMonitor.GetWebsites().Count);
+        }
+        [Test]
+        public void GivenEmptyWebsitesShouldNotHaveAConnection()
+        {
+            Assert.IsFalse(ipMonitor.IsConnectionActive());
+        }
+        [Test]
+        public void ShouldAddWebsiteThenHaveAConnection()
+        {
+            int amntOfWebsites = ipMonitor.GetWebsites().Count;
+            ipMonitor.AddWebsite(WEBSITE1);
+            Assert.AreEqual(amntOfWebsites + 1, ipMonitor.GetWebsites().Count);
+            Assert.IsTrue(ipMonitor.IsConnectionActive());
         }
     }
 }
