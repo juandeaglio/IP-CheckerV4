@@ -9,7 +9,7 @@ namespace IP_Checker
         protected override WebRequest GetWebRequest(Uri uri)
         {
             WebRequest w = base.GetWebRequest(uri);
-            w.Timeout = (int)TimeSpan.FromSeconds(3).TotalMilliseconds;
+            w.Timeout = (int)TimeSpan.FromSeconds(1).TotalMilliseconds;
             return w;
         }
     }

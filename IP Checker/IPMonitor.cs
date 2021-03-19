@@ -16,10 +16,12 @@ namespace IP_Checker
         public string currentIP;
         public string currentIPField;
         private string websiteStr;
+
+        public string FastestWebsite { get; private set; }
+
         //public static bool stop = false;
         private string CurrentWebsite { get; set; } = "";
         private CancellationTokenSource cancelToken = new CancellationTokenSource();
-        private string testWebsite = "";
         private WebsiteTester websiteTester;
         public IPMonitor(WebsiteTester webTester)
         {
@@ -108,27 +110,7 @@ namespace IP_Checker
                 }
             }
         }
-        bool TryWebsite(string website, ref bool error)
-        {
-            try
-            {
-                using (var client = new TimedWebClient())
-                using (client.OpenRead(website))
-                websiteStr = website;
-                error = false;
-                return true;
-            }
-            catch (WebException ex)
-            {
-                //TODO: Logging if a particular link timedOut (needs replacement or checking) GUI feedback if this occurs.
-                testWebsite = website;
-            }
-            catch (OperationCanceledException ex)
-            {
-                //TODO: Logging which one is slower. GUI Feedback of stats on website speeds.
-            }
-            return false;
-        }
+
         public bool IsConnectionActive()
         {
             websiteStr = null;
@@ -137,61 +119,30 @@ namespace IP_Checker
             {
                 if (websiteSet.Count > 1)
                 {
-                    if (CurrentWebsite == null || CurrentWebsite.Equals(""))
+                    if (FastestWebsite == null || FastestWebsite.Equals(""))
                     {
-                        new Thread(() => ParallelTryWebsite(ref error)).Start();
-                        WaitForWebsiteToChange();
-                        cancelToken.Cancel();
+                        FastestWebsite = WebsiteTester.TestForFastestWebsite(websiteTester.GetWebsiteSet(), ref error, cancelToken);
+                        CurrentWebsite = FastestWebsite;
                         cancelToken = new CancellationTokenSource();
                     }
-                    else
-                        TryWebsite(CurrentWebsite, ref error);
+                    else if (!websiteSet.Contains(CurrentWebsite) || !WebsiteTester.TryWebsite(CurrentWebsite, ref error))
+                    {   
+                        FastestWebsite = null;
+                        CurrentWebsite = "";
+                        return false;
+                    }
                 }
-                else if(websiteSet.Count == 1)
-                    TryWebsite(websiteSet.First(), ref error);
+                else if (websiteSet.Count == 1 && WebsiteTester.TryWebsite(websiteSet.First(), ref error))
+                {
+                    CurrentWebsite = websiteSet.First();
+                    FastestWebsite = CurrentWebsite;
+                }
             }
-            CurrentWebsite = websiteStr;
+
             return !error;
         }
 
-        private void WaitForWebsiteToChange()
-        {
-            while (websiteStr == null)
-            { }
-        }
 
-        private void ParallelTryWebsite(ref bool error)
-        {
-            ParallelOptions parOpts = new ParallelOptions();
-            parOpts.CancellationToken = cancelToken.Token;
-            parOpts.MaxDegreeOfParallelism = websiteSet.Count < Environment.ProcessorCount ? websiteSet.Count : Environment.ProcessorCount;
-            error = false;
-            bool written = false;
-            try
-            {
-                bool temp = false;
-                Parallel.ForEach(websiteSet, parOpts, (currentWebsite) =>
-                {
-                    TryWebsite(currentWebsite, ref temp);
-                    if(!written)
-                    {
-                        websiteStr = currentWebsite;
-                        written = true;
-                    }
-                });
-                error = error || temp;
-            }
-            catch (OperationCanceledException ex)
-            {
-                //TODO: Log
-            }
-            catch (WebException ex)
-            {
-                websiteStr = testWebsite;
-                error = true;
-            }
-
-        }
         public void AddWebsite(string name)
         {
             websiteTester.Add(name);
